@@ -1,0 +1,196 @@
+---
+title: /register
+description: Link your AniList account to your Discord profile
+---
+
+## Overview
+
+The `/register` command links your AniList account to your Discord profile, enabling guild features that show which members are watching or reading the same anime/manga.
+
+## Command Syntax
+
+```
+/register anilist:<AniList username>
+```
+
+## Parameters
+
+<ParamField path="anilist" type="string" required>
+  Your AniList username (case-sensitive)
+</ParamField>
+
+## Usage Examples
+
+<Tabs>
+  <Tab title="Register account">
+    ```
+    /register anilist:YourUsername
+    ```
+    Links the AniList account `YourUsername` to your Discord profile.
+  </Tab>
+  <Tab title="Update account">
+    ```
+    /register anilist:NewUsername
+    ```
+    If you've already registered, this command updates your linked account.
+  </Tab>
+</Tabs>
+
+## Response Messages
+
+<ResponseField name="Success">
+  ```
+  Hello {YourDiscordName}, I have linked the Anilist account {YourAniListUsername} to your user.
+  ```
+  Your account is now linked and will appear in guild member data.
+</ResponseField>
+
+<ResponseField name="Account not found">
+  ```
+  Hello {YourDiscordName}, I could not find the Anilist account {Username}.
+  ```
+  The bot couldn't find an AniList account with that username. Double-check spelling and capitalization.
+</ResponseField>
+
+## What Happens After Registration
+
+Once you register your AniList account:
+
+<Steps>
+  <Step title="Profile is stored">
+    Your Discord ID is linked to your AniList username and AniList user ID in the bot's database.
+  </Step>
+  <Step title="Guild features activate">
+    When anyone in your server uses `/anime` or `/manga`, the bot checks if you have that title in your AniList library.
+  </Step>
+  <Step title="Your status appears">
+    If you're watching/reading the queried media, your Discord name, status (Watching, Completed, etc.), and score appear in the embed.
+  </Step>
+</Steps>
+
+## Privacy & Data Storage
+
+Annie Mei stores the following information when you register:
+
+<CardGroup cols={2}>
+  <Card title="Discord User ID" icon="discord">
+    Your unique Discord ID (numeric)
+  </Card>
+  <Card title="AniList User ID" icon="hashtag">
+    Your AniList user ID (numeric)
+  </Card>
+  <Card title="AniList Username" icon="user">
+    Your AniList username (text)
+  </Card>
+</CardGroup>
+
+The bot does **not** store:
+- Your Discord username or display name
+- Your AniList watch/read history
+- Your password or authentication tokens
+
+<Note>
+  All data is fetched fresh from AniList's public API each time you use a command. The bot only stores your username for lookup purposes.
+</Note>
+
+## Updating Your Registration
+
+To change your linked AniList account, simply run `/register` again with the new username:
+
+```
+/register anilist:NewUsername
+```
+
+The bot will **update** your existing registration, not create a duplicate.
+
+## How the Bot Verifies Your Account
+
+When you run `/register`:
+
+1. The bot queries AniList's API for a user with the provided username
+2. If found, it retrieves your AniList user ID
+3. It stores the ID and username in the database linked to your Discord ID
+4. If no user is found, the command fails with an error message
+
+<Tip>
+  Make sure your AniList username is spelled exactly as it appears on your profile. AniList usernames are case-sensitive.
+</Tip>
+
+## Guild Member Features
+
+After registering, other users in your Discord server will see your watch/read status when they use `/anime` or `/manga`:
+
+### Example: /anime search:Demon Slayer
+
+If you've watched "Demon Slayer" on AniList, the embed will include:
+
+```
+Guild Members:
+- YourDiscordName: Completed, Score: 9/10
+- FriendName: Watching, Score: 8/10
+```
+
+### What data is visible?
+
+- Your Discord display name
+- Your watch/read status (Watching, Completed, Dropped, etc.)
+- Your score (if you've rated the media)
+
+<Warning>
+  Guild member data is only visible if:
+  - You've registered your AniList account
+  - The media is in your AniList library (watch/read list)
+  - Other users run commands in a Discord server where you're a member
+</Warning>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Account not found error">
+    **Possible causes:**
+    - Username spelling is incorrect
+    - Username capitalization doesn't match your AniList profile
+    - Your AniList account is very new (may not be indexed yet)
+    
+    **Solution:**
+    Copy your username directly from your AniList profile URL:
+    `https://anilist.co/user/YourUsername/` → Use `YourUsername`
+  </Accordion>
+
+  <Accordion title="Bot doesn't show my status in guild data">
+    **Possible causes:**
+    - You registered after someone else ran the command (they'll see your data on the next lookup)
+    - The anime/manga isn't in your AniList library
+    - Your AniList profile is private
+    
+    **Solution:**
+    Check your AniList privacy settings at https://anilist.co/settings/account
+  </Accordion>
+
+  <Accordion title="How do I unregister?">
+    There is currently no `/unregister` command. To remove your data, contact the bot administrator or request deletion via the bot's support server.
+  </Accordion>
+</AccordionGroup>
+
+## Source Code Reference
+
+Implementation: `src/commands/register/command.rs:19`
+
+The `register()` function defines the command structure:
+
+```rust
+pub fn register() -> CreateCommand {
+    CreateCommand::new("register")
+        .description("Command to register your user's Anilist account")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "anilist",
+                "Anilist username"
+            )
+            .required(true),
+        )
+}
+```
+
+The registration logic at `src/commands/register/command.rs:53` handles account verification and database storage.

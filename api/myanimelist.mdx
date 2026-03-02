@@ -1,0 +1,225 @@
+---
+title: MyAnimeList API
+description: REST API integration for fetching anime opening and ending theme songs
+---
+
+Annie Mei uses the [MyAnimeList API](https://myanimelist.net/apiconfig/references/api/v2) to fetch opening and ending theme song information for anime. This data supplements the metadata from AniList with detailed theme song listings.
+
+## Endpoint
+
+The MyAnimeList API v2 is accessed via:
+
+```
+https://api.myanimelist.net/v2/anime/{mal_id}?fields=opening_themes,ending_themes
+```
+
+The `mal_id` is obtained from the AniList API response (`idMal` field).
+
+## Authentication
+
+The MyAnimeList API requires OAuth 2.0 authentication. Annie Mei uses client credentials flow with the following environment variables:
+
+- `MAL_CLIENT_ID` - Your MyAnimeList API client ID
+- `MAL_CLIENT_SECRET` - Your MyAnimeList API client secret
+
+Register for API access at [MyAnimeList API Config](https://myanimelist.net/apiconfig).
+
+## Response Model
+
+The API response is deserialized into the `MalResponse` struct:
+
+```rust
+#[derive(Deserialize, Debug, Clone)]
+pub struct MalResponse {
+    id: u32,
+    title: String,
+    main_picture: MalPicture,
+    opening_themes: Option<Vec<SongInfo>>,
+    ending_themes: Option<Vec<SongInfo>>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+struct MalPicture {
+    medium: Option<String>,
+    large: Option<String>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+struct SongInfo {
+    id: u32,
+    anime_id: u32,
+    text: String,
+}
+```
+
+Source: [src/models/mal_response.rs:11-33](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L11-L33)
+
+## Song Text Format
+
+The `SongInfo.text` field contains structured information in this format:
+
+```
+#1: "Song Title (Romaji)" by Artist Name (ep 1-12)
+#2: "Song Title" by Artist 1 & Artist 2 & Artist 3 (ep 13-24)
+"Song Title" by Artist Name
+```
+
+### Parsing Logic
+
+The bot parses the following components from each song text:
+
+1. **Song Number**: Extracted from `#N:` prefix
+2. **Song Name**: Text between quotes (`"` or `'`)
+3. **Romaji vs Kana**: Text before parentheses is romaji, text in parentheses is kana/native
+4. **Artists**: Text after "by" and before episode range
+5. **Episode Range**: Text in parentheses starting with "(ep"
+
+Source: [src/models/mal_response.rs:147-188](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L147-L188)
+
+## Example Response
+
+```json
+{
+  "id": 16498,
+  "title": "Shingeki no Kyojin",
+  "main_picture": {
+    "medium": "https://cdn.myanimelist.net/images/anime/10/47347.jpg",
+    "large": "https://cdn.myanimelist.net/images/anime/10/47347l.jpg"
+  },
+  "opening_themes": [
+    {
+      "id": 12345,
+      "anime_id": 16498,
+      "text": "#1: \"Guren no Yumiya (紅蓮の弓矢)\" by Linked Horizon (eps 2-13)"
+    },
+    {
+      "id": 12346,
+      "anime_id": 16498,
+      "text": "#2: \"Jiyuu no Tsubasa (自由の翼)\" by Linked Horizon (eps 14-25)"
+    }
+  ],
+  "ending_themes": [
+    {
+      "id": 12347,
+      "anime_id": 16498,
+      "text": "#1: \"Utsukushiki Zankoku na Sekai (美しき残酷な世界)\" by Yoko Hikasa (eps 2-13)"
+    },
+    {
+      "id": 12348,
+      "anime_id": 16498,
+      "text": "#2: \"great escape\" by cinema staff (eps 14-25)"
+    }
+  ]
+}
+```
+
+## Data Transformations
+
+### Display Formatting
+
+Songs are formatted for Discord embeds with the following features:
+
+```rust
+pub fn transform_openings(&self) -> String
+pub fn transform_endings(&self) -> String
+```
+
+Formatted output example:
+
+```
+1. **Guren no Yumiya** by Linked Horizon | ep 2-13
+2. **Jiyuu no Tsubasa** by Linked Horizon | ep 14-25
+```
+
+Source: [src/models/mal_response.rs:199-201](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L199-L201)
+
+### Spotify Integration
+
+For each song, the bot attempts to find a matching Spotify track:
+
+```rust
+let spotify_url = Self::fetch_spotify_url(
+    Self::get_romaji_song_name(&song_name),
+    Self::get_kana_song_name(&song_name),
+    artist_names,
+);
+```
+
+If found, the song title becomes a clickable link to Spotify. See the [Spotify API](/api/spotify) page for details.
+
+Source: [src/models/mal_response.rs:64-72](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L64-L72)
+
+### Artist Name Truncation
+
+When more than 3 artists are listed, the display truncates to the first 3 and adds "and more":
+
+```rust
+if number_of_artists > 3 {
+    let mut artist_names = artist_names.split('&').take(3).collect::<Vec<&str>>();
+    artist_names.push("and more");
+    Some(artist_names.join(", "))
+}
+```
+
+Source: [src/models/mal_response.rs:128-132](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L128-L132)
+
+### List Truncation
+
+Only the first 10 opening and ending themes are displayed to avoid Discord embed size limits:
+
+```rust
+fn transform_songs(&self, songs: Option<Vec<SongInfo>>) -> String {
+    match songs {
+        None => "No information available".to_string(),
+        Some(mut songs_list) => {
+            songs_list.truncate(10);
+            songs_list.shrink_to_fit();
+            Self::format_songs_for_display(songs_list)
+        }
+    }
+}
+```
+
+Source: [src/models/mal_response.rs:203-213](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L203-L213)
+
+## Usage Example
+
+```rust
+use crate::models::mal_response::MalResponse;
+
+// Fetch from API (pseudo-code)
+let response: MalResponse = fetch_mal_data(mal_id)?;
+
+// Get formatted opening themes with Spotify links
+let openings = response.transform_openings();
+
+// Get formatted ending themes
+let endings = response.transform_endings();
+
+// Get thumbnail for embed
+let thumbnail = response.transform_thumbnail();
+
+// Get MAL link
+let mal_link = response.transform_mal_link();
+```
+
+## Error Handling
+
+When song data is unavailable or parsing fails:
+
+- Missing opening/ending themes return `"No information available"`
+- Failed song name parsing returns `"No information available"`
+- Missing artist names are omitted from display
+- Missing episode ranges are omitted from display
+
+Source: [src/models/mal_response.rs:155-157](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L155-L157)
+
+## Rate Limiting
+
+MyAnimeList enforces API rate limits. The bot should implement:
+
+- Request throttling
+- Response caching (especially for popular anime)
+- Graceful error handling for 429 Too Many Requests
+
+Note: The current implementation does not include explicit rate limiting logic. Consider adding this for production use.

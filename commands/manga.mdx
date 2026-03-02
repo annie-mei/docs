@@ -1,0 +1,153 @@
+---
+title: /manga
+description: Look up manga details from AniList
+---
+
+## Overview
+
+The `/manga` command fetches comprehensive manga information from AniList, including metadata, author details, and guild member reading lists.
+
+## Command Syntax
+
+```
+/manga search:<AniList ID or search term>
+```
+
+## Parameters
+
+<ParamField path="search" type="string" required>
+  AniList ID (numeric) or search term (title in any language)
+</ParamField>
+
+## Usage Examples
+
+<Tabs>
+  <Tab title="By AniList ID">
+    ```
+    /manga search:30013
+    ```
+    Returns **One Piece** manga using its exact AniList ID.
+  </Tab>
+  <Tab title="By English title">
+    ```
+    /manga search:Chainsaw Man
+    ```
+    Searches for "Chainsaw Man" and returns the best match.
+  </Tab>
+  <Tab title="By Japanese title">
+    ```
+    /manga search:チェンソーマン
+    ```
+    Full kanji/kana support for native titles.
+  </Tab>
+  <Tab title="By Romaji">
+    ```
+    /manga search:Kimetsu no Yaiba
+    ```
+    Romaji searches work as expected.
+  </Tab>
+</Tabs>
+
+## Response Data
+
+The bot returns a rich embed with the following information:
+
+<ResponseField name="Title">
+  Displays romaji, English, and native (Japanese) titles
+</ResponseField>
+
+<ResponseField name="Metadata">
+  - **Format**: Manga, Light Novel, One-Shot, Manhwa, Manhua, Doujinshi
+  - **Chapters**: Total chapter count (or `?` if ongoing)
+  - **Volumes**: Total volume count (or `?` if ongoing)
+  - **Start/End Date**: Publication timeline
+  - **Status**: Releasing, Finished, Not Yet Released, Cancelled, Hiatus
+  - **Average Score**: Community rating (out of 100)
+</ResponseField>
+
+<ResponseField name="Genres & Tags">
+  AniList genres (Action, Adventure, Romance, etc.) and user-generated tags
+</ResponseField>
+
+<ResponseField name="Staff">
+  Author and illustrator information with their roles (Story, Art, Story & Art)
+</ResponseField>
+
+<ResponseField name="Description">
+  Synopsis (may contain spoilers for ongoing series)
+</ResponseField>
+
+<ResponseField name="Links">
+  - **AniList URL**: Direct link to the AniList page
+  - **External services**: MangaDex, MangaPlus, etc. (if available)
+</ResponseField>
+
+<ResponseField name="Guild Data" optional>
+  If guild members have registered their AniList accounts:
+  - Member names and their reading status (Reading, Completed, Dropped, etc.)
+  - Individual scores (out of 10)
+</ResponseField>
+
+## Search Tips
+
+<Tip>
+  **AniList IDs guarantee exact matches.** Find the ID in the URL:
+  
+  `https://anilist.co/manga/30013` → Use `/manga search:30013`
+</Tip>
+
+<AccordionGroup>
+  <Accordion title="No results found?">
+    If the bot returns `Could not find manga`, try:
+    - Verifying the spelling
+    - Using the romaji title instead of English
+    - Searching for the Japanese title in kana/kanji
+    - Using the AniList ID from the website
+  </Accordion>
+
+  <Accordion title="Light novels vs manga">
+    AniList treats light novels and manga as separate entries. If searching for a light novel:
+    ```
+    /manga search:Sword Art Online
+    ```
+    May return the light novel, not the manga adaptation. Check the format in the response.
+  </Accordion>
+
+  <Accordion title="Manhwa and manhua">
+    Korean manhwa and Chinese manhua are fully supported:
+    ```
+    /manga search:Solo Leveling
+    /manga search:The Beginning After The End
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Differences from /anime
+
+| Feature | /anime | /manga |
+|---------|--------|--------|
+| **Source** | AniList anime database | AniList manga database |
+| **Metadata** | Episodes, duration, season, studios | Chapters, volumes, publication dates, staff |
+| **Links** | Streaming services, trailers | Reading platforms |
+| **Guild data** | Watch status & scores | Reading status & scores |
+
+## Source Code Reference
+
+Implementation: `src/commands/manga/command.rs:27`
+
+The `register()` function defines the command structure:
+
+```rust
+pub fn register() -> CreateCommand {
+    CreateCommand::new("manga")
+        .description("Fetches the details for a manga")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "search",
+                "Anilist ID or Search term",
+            )
+            .required(true),
+        )
+}
+```

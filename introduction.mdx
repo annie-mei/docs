@@ -1,0 +1,55 @@
+---
+title: Introduction
+description: Annie Mei is a Discord bot written in Rust that fetches anime and manga information from AniList, with theme song lookups powered by MyAnimeList and Spotify.
+---
+
+# Annie Mei
+
+A high-performance Discord bot written in Rust that brings anime and manga information directly to your Discord server.
+
+## What is Annie Mei?
+
+Annie Mei is a specialized Discord bot that fetches detailed anime and manga information from AniList's extensive database. It provides theme song lookups with Spotify links, supports full Japanese kana searches, and allows users to link their AniList accounts to share their scores with guild members.
+
+Built with Rust using the Serenity framework, Annie Mei delivers fast, reliable responses through Discord's slash command interface.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="AniList Integration" icon="book">
+    Fetch comprehensive anime and manga information directly from AniList, including titles, descriptions, ratings, and more.
+  </Card>
+  
+  <Card title="Theme Song Lookup" icon="music">
+    Discover opening and ending theme songs for any anime with direct Spotify links for instant listening.
+  </Card>
+  
+  <Card title="AniList Account Linking" icon="link">
+    Connect your AniList account to display your personal scores when looking up anime and manga in your server.
+  </Card>
+  
+  <Card title="Japanese Kana Support" icon="language">
+    Search using Japanese kana characters for accurate results when looking up anime and manga by their original titles.
+  </Card>
+  
+  <Card title="High Performance" icon="rocket">
+    Built with Rust for exceptional speed and reliability, using PostgreSQL for data persistence and Redis for caching.
+  </Card>
+</CardGroup>
+
+## Get Started
+
+Ready to add Annie Mei to your server? Check out our [Quickstart Guide](/quickstart) to get up and running in minutes.
+
+Want to self-host? See our [Installation Guide](/installation) for detailed setup instructions.
+
+## Technology Stack
+
+Annie Mei is built with modern, production-ready technologies:
+
+- **Language**: Rust 2024 Edition (1.93+)
+- **Discord Framework**: Serenity 0.12
+- **Database**: PostgreSQL with Diesel ORM
+- **Cache**: Redis
+- **Error Tracking**: Sentry
+- **Async Runtime**: Tokio

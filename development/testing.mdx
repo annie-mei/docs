@@ -1,0 +1,514 @@
+---
+title: Testing
+description: Running tests and ensuring code quality with Rust tooling
+---
+
+Annie Mei uses Rust's built-in testing framework along with code quality tools to maintain high standards.
+
+## Running Tests
+
+Rust's testing framework is built into `cargo`:
+
+### Run All Tests
+
+```bash
+cargo test
+```
+
+This runs:
+- Unit tests (in `#[cfg(test)]` modules)
+- Integration tests (in `tests/` directory)
+- Documentation tests (in doc comments)
+
+### Run Specific Tests
+
+Test a specific module:
+
+```bash
+cargo test commands::ping
+```
+
+Run tests matching a pattern:
+
+```bash
+cargo test happy_path
+```
+
+Run a single test function:
+
+```bash
+cargo test ping_happy_path_returns_message_with_greeting
+```
+
+### Show Test Output
+
+By default, Rust captures stdout/stderr. To see print statements:
+
+```bash
+cargo test -- --nocapture
+```
+
+Show all output including passing tests:
+
+```bash
+cargo test -- --show-output
+```
+
+## Writing Tests
+
+### Unit Tests
+
+Unit tests live in the same file as the code being tested, in a `#[cfg(test)]` module:
+
+```rust src/commands/ping.rs
+// ── Tests ───────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ping_happy_path_returns_message_with_greeting() {
+        let response = handle_ping("<@123456>");
+
+        assert!(response.is_message(), "expected Message variant");
+        let text = response.unwrap_message();
+        assert!(
+            text.contains("<@123456>"),
+            "response should mention the user"
+        );
+        assert!(
+            text.contains("Annie Mei"),
+            "response should mention the bot name"
+        );
+    }
+
+    #[test]
+    fn ping_response_includes_bot_description() {
+        let text = handle_ping("<@999>").unwrap_message();
+        assert!(
+            text.contains("anime and manga"),
+            "response should describe what the bot does"
+        );
+    }
+}
+```
+
+See `src/commands/ping.rs:50-78` for the complete implementation.
+
+### Test Patterns
+
+Annie Mei follows a testable architecture pattern:
+
+1. **Core logic** - Transport-agnostic, pure functions
+2. **Adapter** - Thin wrapper that calls Serenity APIs
+
+Example from `src/commands/ping.rs`:
+
+```rust
+// ── Core logic (transport-agnostic) ─────────────────────────────────────
+
+/// Produce the `/ping` response for the given user mention string.
+///
+/// This is the testable entry-point — it never touches `Context` or
+/// `CommandInteraction`.
+pub fn handle_ping(user_mention: &str) -> CommandResponse {
+    CommandResponse::Message(format!(
+        "Hello {user_mention}! I'm Annie Mei, a bot that helps you find anime and manga!",
+    ))
+}
+
+// ── Serenity adapter (thin wrapper) ─────────────────────────────────────
+
+pub async fn run(ctx: &Context, interaction: &CommandInteraction) {
+    let user = &interaction.user;
+    configure_sentry_scope("Ping", user.id.get(), None);
+
+    let reply = handle_ping(&user.mention().to_string());
+
+    // Send response via Serenity...
+}
+```
+
+This separation allows testing `handle_ping()` without mocking Discord APIs.
+
+### Integration Tests
+
+Integration tests go in the `tests/` directory:
+
+```rust tests/integration_test.rs
+use annie_mei::commands::ping::handle_ping;
+use annie_mei::commands::response::CommandResponse;
+
+#[test]
+fn test_ping_integration() {
+    let response = handle_ping("<@12345>");
+    assert!(response.is_message());
+}
+```
+
+### Mocking External APIs
+
+For commands that call external APIs (AniList, MAL, Spotify), mock the responses:
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Helper: build a minimal `Anime` from JSON for testing.
+    fn sample_anime() -> Anime {
+        serde_json::from_value(serde_json::json!({
+            "type": "ANIME",
+            "id": 21,
+            "idMal": 21,
+            "title": {
+                "romaji": "One Piece",
+                "english": "One Piece",
+                "native": "ワンピース"
+            },
+            // ... more fields
+        }))
+        .expect("sample anime JSON should deserialize")
+    }
+
+    #[test]
+    fn anime_success_returns_embed() {
+        let response = handle_anime(Some(sample_anime()), None);
+        assert!(response.is_embed());
+    }
+}
+```
+
+See `src/commands/anime/command.rs:136-209` for complete examples.
+
+## Code Quality Tools
+
+### Formatting with rustfmt
+
+Format all code according to Rust style guidelines:
+
+```bash
+cargo fmt
+```
+
+Check formatting without modifying files:
+
+```bash
+cargo fmt -- --check
+```
+
+<Warning>
+  Always run `cargo fmt` before committing code. This is a required convention.
+</Warning>
+
+### Linting with Clippy
+
+Run the Clippy linter to catch common mistakes:
+
+```bash
+cargo clippy
+```
+
+Fix warnings automatically (when possible):
+
+```bash
+cargo clippy --fix
+```
+
+Treat warnings as errors:
+
+```bash
+cargo clippy -- -D warnings
+```
+
+<Warning>
+  Fix all Clippy warnings before committing. This ensures code quality.
+</Warning>
+
+### Type Checking
+
+Fast type checking without building:
+
+```bash
+cargo check
+```
+
+This is much faster than `cargo build` and catches most errors.
+
+## Code Coverage
+
+Generate code coverage reports using `cargo-tarpaulin`:
+
+### Install tarpaulin
+
+```bash
+cargo install cargo-tarpaulin
+```
+
+### Generate Coverage Report
+
+```bash
+cargo tarpaulin --out Html
+```
+
+This creates an HTML report at `tarpaulin-report.html`.
+
+For CI/CD, output in XML format:
+
+```bash
+cargo tarpaulin --out Xml
+```
+
+## Benchmarking
+
+Benchmark performance-critical code:
+
+```rust benches/fuzzy_bench.rs
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use annie_mei::utils::fuzzy::fuzzy_match;
+
+fn benchmark_fuzzy_match(c: &mut Criterion) {
+    c.bench_function("fuzzy_match", |b| {
+        b.iter(|| fuzzy_match(black_box("one piece"), black_box("One Piece")))
+    });
+}
+
+criterion_group!(benches, benchmark_fuzzy_match);
+criterion_main!(benches);
+```
+
+Run benchmarks:
+
+```bash
+cargo bench
+```
+
+## Pre-Commit Workflow
+
+Before committing, run this checklist:
+
+<Steps>
+  <Step title="Format Code">
+    ```bash
+    cargo fmt
+    ```
+  </Step>
+
+  <Step title="Run Linter">
+    ```bash
+    cargo clippy
+    ```
+
+    Fix all warnings.
+  </Step>
+
+  <Step title="Run Tests">
+    ```bash
+    cargo test
+    ```
+
+    Ensure all tests pass.
+  </Step>
+
+  <Step title="Check Types">
+    ```bash
+    cargo check
+    ```
+
+    Verify no type errors.
+  </Step>
+</Steps>
+
+<Tip>
+  Consider using a git pre-commit hook to automate this workflow:
+
+  ```bash .git/hooks/pre-commit
+  #!/bin/sh
+  cargo fmt -- --check || exit 1
+  cargo clippy -- -D warnings || exit 1
+  cargo test || exit 1
+  ```
+
+  Make it executable:
+  ```bash
+  chmod +x .git/hooks/pre-commit
+  ```
+</Tip>
+
+## CI/CD Testing
+
+Annie Mei uses GitHub Actions for automated testing. The workflow:
+
+1. Run `cargo fmt -- --check`
+2. Run `cargo clippy -- -D warnings`
+3. Run `cargo test`
+4. Build release binary
+
+See `.github/workflows/` for workflow definitions.
+
+## Test-Driven Development
+
+Follow TDD for new features:
+
+<Steps>
+  <Step title="Write a Failing Test">
+    Start with a test that captures the desired behavior:
+
+    ```rust
+    #[test]
+    fn new_feature_returns_expected_value() {
+        let result = new_feature("input");
+        assert_eq!(result, "expected");
+    }
+    ```
+  </Step>
+
+  <Step title="Run the Test">
+    Verify it fails:
+
+    ```bash
+    cargo test new_feature_returns_expected_value
+    ```
+  </Step>
+
+  <Step title="Implement the Feature">
+    Write minimal code to make the test pass:
+
+    ```rust
+    pub fn new_feature(input: &str) -> String {
+        "expected".to_string()
+    }
+    ```
+  </Step>
+
+  <Step title="Run the Test Again">
+    Verify it passes:
+
+    ```bash
+    cargo test new_feature_returns_expected_value
+    ```
+  </Step>
+
+  <Step title="Refactor">
+    Improve the implementation while keeping tests green:
+
+    ```rust
+    pub fn new_feature(input: &str) -> String {
+        format!("expected: {}", input)
+    }
+    ```
+  </Step>
+</Steps>
+
+## Debugging Tests
+
+### Print Debugging
+
+Use `println!` or `dbg!` in tests:
+
+```rust
+#[test]
+fn debug_example() {
+    let value = compute_something();
+    dbg!(&value);  // Prints file, line, and value
+    assert_eq!(value, expected);
+}
+```
+
+Run with output visible:
+
+```bash
+cargo test -- --nocapture
+```
+
+### Test-Specific Logging
+
+Enable logging in tests:
+
+```rust
+#[test]
+fn test_with_logging() {
+    let _ = tracing_subscriber::fmt::try_init();
+    
+    info!("Starting test");
+    let result = function_under_test();
+    info!("Result: {:?}", result);
+    
+    assert!(result.is_ok());
+}
+```
+
+### Running Single Tests in Debug Mode
+
+```bash
+RUST_BACKTRACE=1 cargo test specific_test_name -- --exact
+```
+
+This shows full stack traces on panics.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Test Naming" icon="tag">
+    Use descriptive test names:
+    
+    ```rust
+    #[test]
+    fn ping_happy_path_returns_message_with_greeting() {
+        // Test implementation
+    }
+    ```
+    
+    Format: `function_scenario_expectedBehavior`
+  </Card>
+  
+  <Card title="Arrange-Act-Assert" icon="list-check">
+    Structure tests clearly:
+    
+    ```rust
+    #[test]
+    fn test_example() {
+        // Arrange
+        let input = setup_test_data();
+        
+        // Act
+        let result = function(input);
+        
+        // Assert
+        assert_eq!(result, expected);
+    }
+    ```
+  </Card>
+  
+  <Card title="Test Independence" icon="arrows-split-up-and-left">
+    Each test should be independent:
+    
+    - Don't rely on test execution order
+    - Clean up resources after tests
+    - Avoid shared mutable state
+  </Card>
+  
+  <Card title="Edge Cases" icon="diamond-exclamation">
+    Test boundary conditions:
+    
+    - Empty strings
+    - Null values (None)
+    - Maximum/minimum values
+    - Invalid input
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Adding Commands" icon="code" href="/development/adding-commands">
+    Learn how to write testable command handlers
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/development/architecture">
+    Understand testable design patterns
+  </Card>
+  <Card title="Rust Testing Book" icon="book" href="https://doc.rust-lang.org/book/ch11-00-testing.html">
+    Official Rust testing documentation
+  </Card>
+</CardGroup>

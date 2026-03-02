@@ -1,0 +1,160 @@
+---
+title: Architecture
+description: Project structure and technology stack for Annie Mei
+---
+
+Annie Mei is a Rust Discord bot that fetches anime/manga data from AniList and theme songs from MyAnimeList/Spotify. Users interact via Discord slash commands.
+
+## Technology Stack
+
+Annie Mei uses modern Rust ecosystem tools for building a reliable and performant Discord bot:
+
+| Component | Technology                   | Purpose                                  |
+| --------- | ---------------------------- | ---------------------------------------- |
+| Language  | Rust 2024 Edition            | Core programming language                |
+| Discord   | Serenity 0.12                | Discord API client and gateway           |
+| Database  | PostgreSQL + Diesel ORM      | User data persistence and schema management |
+| Cache     | Redis                        | Fast API response caching                |
+| HTTP      | Reqwest (blocking)           | External API requests (AniList, MAL)     |
+| Async     | Tokio                        | Asynchronous runtime for event handling  |
+| Logging   | tracing + tracing-subscriber | Structured logging and observability     |
+| Errors    | Sentry                       | Error tracking and monitoring            |
+
+## Project Layout
+
+The codebase follows a modular structure organized by functionality:
+
+```
+src/
+├── commands/        # Slash command implementations
+├── models/          # Data types, DB models, API responses
+├── utils/           # Shared utilities, API clients, DB helpers
+├── schema.rs        # Diesel schema (AUTO-GENERATED - never edit)
+└── main.rs          # Bot entry point and event routing
+migrations/          # Diesel SQL migrations
+```
+
+### Commands Directory
+
+Each command is organized as a module in `src/commands/`. Example structure:
+
+```
+src/commands/
+├── anime/
+│   ├── mod.rs
+│   ├── command.rs      # Command registration and execution
+│   └── queries.rs      # GraphQL queries for AniList API
+├── manga/
+├── songs/
+├── ping.rs             # Simple single-file command
+├── help.rs
+└── mod.rs              # Module exports
+```
+
+### Models Directory
+
+Data structures for API responses and database models:
+
+```
+src/models/
+├── db/
+│   ├── user.rs         # Database models (Diesel)
+│   └── mod.rs
+├── anilist_anime.rs    # AniList anime API response types
+├── anilist_manga.rs    # AniList manga API response types
+├── anilist_common.rs   # Shared AniList types
+├── mal_response.rs     # MyAnimeList API response types
+├── transformers.rs     # Convert API responses to Discord embeds
+└── mod.rs
+```
+
+### Utils Directory
+
+Shared functionality and external integrations:
+
+```
+src/utils/
+├── requests/
+│   ├── anilist.rs      # AniList API client
+│   ├── my_anime_list.rs # MAL API client
+│   └── mod.rs
+├── database.rs         # Diesel connection and helpers
+├── redis.rs            # Redis caching layer
+├── spotify.rs          # Spotify API integration
+├── formatter.rs        # Text formatting utilities
+├── fuzzy.rs            # Fuzzy string matching
+├── privacy.rs          # User ID hashing for Sentry
+├── statics.rs          # Constants and environment variables
+└── mod.rs
+```
+
+## Async/Blocking Architecture
+
+Annie Mei uses a hybrid async/blocking pattern:
+
+- **Async**: Discord interactions via Serenity and Tokio
+- **Blocking**: External API calls via blocking reqwest
+- **Bridge**: `tokio::task::spawn_blocking` wraps blocking operations
+
+<Warning>
+  Always call `interaction.defer()` before long-running operations. Discord enforces a 3-second response window.
+</Warning>
+
+### Example Pattern
+
+```rust
+#[instrument(name = "command.anime.run", skip(ctx, interaction))]
+pub async fn run(ctx: &Context, interaction: &mut CommandInteraction) {
+    // Defer immediately for long operations
+    let _ = interaction.defer(&ctx.http).await;
+
+    // Blocking API call wrapped in spawn_blocking
+    let anime_result = match task::spawn_blocking(move || {
+        AniListSource.fetch_anime(&search_term)
+    }).await {
+        Ok(result) => result,
+        Err(e) => {
+            error!(error = %e, "spawn_blocking panicked");
+            None
+        }
+    };
+
+    // Handle response...
+}
+```
+
+## Entry Points
+
+The bot's execution flow starts in `src/main.rs`:
+
+1. **Initialization** (`main.rs:116-241`)
+   - Parse CLI arguments
+   - Initialize Sentry error tracking
+   - Set up tracing/logging
+   - Run database migrations
+   - Create Discord client
+
+2. **Event Handler** (`main.rs:52-112`)
+   - `interaction_create` - Routes slash commands to handlers
+   - `ready` - Registers slash commands with Discord
+
+3. **Command Routing** (`main.rs:66-84`)
+   - Matches command names to handler functions
+   - Configures tracing spans for observability
+
+## Environment Configuration
+
+The bot requires these environment variables to run:
+
+| Variable                  | Description                        |
+| ------------------------- | ---------------------------------- |
+| `DISCORD_TOKEN`           | Bot token from Discord Developer Portal |
+| `SENTRY_DSN`              | Sentry project DSN for error tracking |
+| `ENV`                     | Environment name (dev/staging/prod) |
+| `DATABASE_URL`            | PostgreSQL connection string       |
+| `REDIS_URL`               | Redis connection string            |
+| `RSPOTIFY_CLIENT_ID`      | Spotify API client ID              |
+| `RSPOTIFY_CLIENT_SECRET`  | Spotify API client secret          |
+| `SENTRY_TRACES_SAMPLE_RATE` | Optional: Sentry trace sampling (0.0-1.0) |
+
+See `src/utils/statics.rs` for constant definitions.

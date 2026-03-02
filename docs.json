@@ -1,0 +1,70 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "Annie Mei",
+  "theme": "aspen",
+  "colors": {
+    "primary": "#e4a015",
+    "light": "#f5b84a",
+    "dark": "#b8761a"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/annie-mei/annie-mei"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/annie-mei/annie-mei"
+    }
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "introduction",
+          "quickstart",
+          "installation"
+        ]
+      },
+      {
+        "group": "Commands",
+        "pages": [
+          "commands/overview",
+          "commands/anime",
+          "commands/manga",
+          "commands/songs",
+          "commands/register",
+          "commands/help"
+        ]
+      },
+      {
+        "group": "Development",
+        "pages": [
+          "development/architecture",
+          "development/setup",
+          "development/adding-commands",
+          "development/database",
+          "development/testing"
+        ]
+      },
+      {
+        "group": "Deployment",
+        "pages": [
+          "deployment/configuration",
+          "deployment/environment-variables",
+          "deployment/infrastructure"
+        ]
+      },
+      {
+        "group": "API Reference",
+        "pages": [
+          "api/anilist",
+          "api/myanimelist",
+          "api/spotify"
+        ]
+      }
+    ]
+  }
+}

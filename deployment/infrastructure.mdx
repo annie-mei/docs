@@ -1,0 +1,380 @@
+---
+title: Infrastructure
+description: Set up the infrastructure for deploying Annie Mei to production
+---
+
+## Overview
+
+Annie Mei's production infrastructure uses serverless and managed services for scalability and reliability:
+
+- **Database**: Neon (Serverless PostgreSQL)
+- **Cache**: Upstash (Serverless Redis)
+- **Secrets**: Doppler (Secrets Management)
+- **Monitoring**: Sentry (Error Tracking)
+- **Compute**: Oracle Cloud (ARM64 VM)
+
+## Database: Neon PostgreSQL
+
+### Why Neon?
+
+- Serverless PostgreSQL with automatic scaling
+- Built-in connection pooling
+- Generous free tier for development
+- Instant branching for testing
+
+### Setup
+
+1. **Create a Neon account** at [neon.tech](https://neon.tech)
+
+2. **Create a new project**:
+   - Select your preferred region
+   - PostgreSQL version: 15 or later
+
+3. **Get the connection string**:
+   - Go to your project dashboard
+   - Copy the connection string (format: `postgres://user:password@host/db?sslmode=require`)
+   - Set as `DATABASE_URL` environment variable
+
+4. **Run migrations**:
+   ```bash
+   diesel migration run
+   ```
+
+### Connection Pooling
+
+Neon automatically provides connection pooling. Use the pooled connection string for the bot:
+
+```bash
+DATABASE_URL=postgres://user:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
+```
+
+### Schema
+
+Annie Mei uses Diesel ORM for database migrations. The schema is defined in:
+- `src/schema.rs` (auto-generated, do not edit)
+- `migrations/` (SQL migration files)
+
+The database stores:
+- User AniList account registrations
+- User preferences and settings
+
+### Backups
+
+Neon automatically backs up your data. Configure backup retention in the Neon dashboard.
+
+## Cache: Upstash Redis
+
+### Why Upstash?
+
+- Serverless Redis with per-request pricing
+- Global edge caching
+- TLS support built-in
+- Generous free tier
+
+### Setup
+
+1. **Create an Upstash account** at [upstash.com](https://upstash.com)
+
+2. **Create a Redis database**:
+   - Choose a region close to your compute
+   - Select "Global" for worldwide edge caching (optional)
+   - Enable TLS
+
+3. **Get the connection string**:
+   - Copy the "Redis URL" from the database dashboard
+   - Format: `rediss://default:password@host:port`
+   - Set as `REDIS_URL` environment variable
+
+### Caching Strategy
+
+Annie Mei caches:
+- AniList API responses (anime/manga data)
+- MyAnimeList theme song data
+- Spotify track lookups
+
+Cache TTLs are configured per API endpoint to balance freshness and API rate limits.
+
+### Monitoring
+
+Monitor Redis usage in the Upstash dashboard:
+- Request count
+- Data size
+- Cache hit rate
+
+## Secrets: Doppler
+
+### Why Doppler?
+
+- Centralized secrets management
+- Environment-specific configurations
+- Automatic syncing to deployment targets
+- Audit logs for secret access
+
+### Setup
+
+1. **Create a Doppler account** at [doppler.com](https://www.doppler.com/)
+
+2. **Install the Doppler CLI**:
+   ```bash
+   curl -Ls https://cli.doppler.com/install.sh | sh
+   ```
+
+3. **Login and create a project**:
+   ```bash
+   doppler login
+   doppler projects create annie-mei
+   ```
+
+4. **Configure environments**:
+   - Create `dev`, `staging`, and `production` environments
+   - Set all [required environment variables](/deployment/environment-variables)
+
+5. **Run the bot with Doppler**:
+   ```bash
+   doppler run -- ./annie-mei
+   ```
+
+### CI/CD Integration
+
+Doppler can sync secrets to GitHub Actions:
+
+1. Generate a service token in Doppler
+2. Add as `DOPPLER_TOKEN` in GitHub repository secrets
+3. Use in workflows:
+   ```yaml
+   - name: Install Doppler CLI
+     uses: dopplerhq/cli-action@v3
+   
+   - name: Run with secrets
+     run: doppler run -- ./annie-mei
+     env:
+       DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+   ```
+
+## Monitoring: Sentry
+
+### Setup
+
+1. **Create a Sentry account** at [sentry.io](https://sentry.io)
+
+2. **Create a project**:
+   - Platform: Rust
+   - Copy the DSN
+   - Set as `SENTRY_DSN` environment variable
+
+3. **Configure trace sampling**:
+   ```bash
+   SENTRY_TRACES_SAMPLE_RATE=0.1  # 10% of traces
+   ```
+
+### Privacy Features
+
+Annie Mei implements privacy-focused monitoring:
+
+- **User ID hashing**: Discord user IDs are hashed before sending to Sentry using `USERID_HASH_SALT`
+- **Credential redaction**: Database and API credentials in URLs are automatically stripped from error logs
+- **Hash lookup utility**: Use `./annie-mei hash <user_id>` to find a user's hashed ID in Sentry
+
+See `src/main.rs:146-173` for implementation details.
+
+### Debug Symbols
+
+The CI/CD pipeline automatically uploads debug symbols to Sentry for symbolicated stack traces:
+
+```yaml
+# From .github/workflows/build-release.yml:44-56
+- name: Upload debug symbols to Sentry
+  run: |
+    curl -sL https://sentry.io/get-cli/ | bash
+    sentry-cli debug-files upload --include-sources target/release/
+  env:
+    SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+    SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+    SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+```
+
+Set these GitHub secrets:
+- `SENTRY_AUTH_TOKEN`: Create in Sentry settings
+- `SENTRY_ORG`: Your Sentry organization slug
+- `SENTRY_PROJECT`: Your project slug
+
+## Compute: Oracle Cloud
+
+### Deployment Target
+
+Annie Mei is deployed to Oracle Cloud ARM64 VMs. The deployment is automated via GitHub Actions.
+
+### Server Setup
+
+1. **Create an ARM64 Ubuntu VM** on Oracle Cloud
+
+2. **Install system dependencies**:
+   ```bash
+   sudo apt-get update
+   sudo apt-get install -y libpq-dev
+   ```
+
+3. **Create the application directory**:
+   ```bash
+   sudo mkdir -p /opt/annie-mei
+   sudo chown $USER:$USER /opt/annie-mei
+   ```
+
+4. **Create a systemd service** (`/etc/systemd/system/annie-mei.service`):
+   ```ini
+   [Unit]
+   Description=Annie Mei Discord Bot
+   After=network.target
+   
+   [Service]
+   Type=simple
+   User=annie
+   WorkingDirectory=/opt/annie-mei
+   ExecStart=/opt/annie-mei/annie-mei
+   Restart=always
+   RestartSec=10
+   
+   # Load environment variables from Doppler or .env file
+   EnvironmentFile=/opt/annie-mei/.env
+   
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+5. **Enable and start the service**:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable annie-mei
+   sudo systemctl start annie-mei
+   ```
+
+### Health Checks
+
+Annie Mei runs an HTTP server on port 8080 (configurable via `SERVER_PORT`) for health checks:
+
+```bash
+curl http://localhost:8080/health
+```
+
+Use this endpoint for:
+- Load balancer health checks
+- Monitoring systems
+- Deployment verification
+
+## CI/CD: GitHub Actions
+
+Annie Mei uses GitHub Actions for automated building, testing, and deployment.
+
+### Workflows
+
+#### 1. Clippy Analysis (`.github/workflows/rust-clippy.yml`)
+
+Runs on every PR and push to `main`:
+- Lints code with `cargo clippy`
+- Uploads results to GitHub Security
+- Annotates PRs with warnings
+
+#### 2. Build and Deploy (`.github/workflows/build-release.yml`)
+
+Runs on:
+- Version tags (`v*.*.*`)
+- Manual workflow dispatch
+
+Steps:
+1. **Build ARM64 binary** in Rust Docker container
+2. **Upload debug symbols** to Sentry
+3. **Create GitHub release** with binaries
+4. **Deploy to Oracle Cloud**:
+   - Copy binary via SCP
+   - Validate binary (executable, dependencies, files)
+   - Backup current binary
+   - Restart systemd service
+   - Verify service started successfully
+   - Rollback on failure
+
+### Required GitHub Secrets
+
+Set these in your GitHub repository settings:
+
+**Oracle Cloud Deployment:**
+- `ORACLE_HOST`: VM hostname or IP
+- `ORACLE_USER`: SSH username
+- `ORACLE_SSH_KEY`: Private SSH key
+
+**Sentry Integration:**
+- `SENTRY_AUTH_TOKEN`: Sentry API token
+- `SENTRY_ORG`: Organization slug
+- `SENTRY_PROJECT`: Project slug
+
+### Manual Deployment
+
+To deploy a specific branch manually:
+
+```bash
+gh workflow run build-release.yml -f ref=your-branch-name
+```
+
+### Deployment Process
+
+The automated deployment (`.github/workflows/build-release.yml:102-139`):
+
+1. Validates the new binary
+2. Checks library dependencies with `ldd`
+3. Verifies required files (e.g., `mei.jpg`)
+4. Backs up the current binary
+5. Stops the service
+6. Replaces the binary
+7. Starts the service
+8. Verifies the service started successfully
+9. Rolls back if startup fails
+
+## Cost Estimates
+
+### Free Tier Eligible
+
+- **Neon**: Free tier includes 512 MB storage, 3 GB data transfer
+- **Upstash**: Free tier includes 10,000 requests/day
+- **Doppler**: Free tier includes unlimited secrets, 5 users
+- **Sentry**: Free tier includes 5,000 errors/month, 10,000 traces/month
+- **Oracle Cloud**: Always Free tier includes ARM64 compute
+
+### Estimated Monthly Costs
+
+For a small to medium Discord bot (assuming free tiers are exceeded):
+
+- **Neon**: $0-10 (free tier usually sufficient)
+- **Upstash**: $0-10 (pay per request)
+- **Doppler**: $0 (free tier)
+- **Sentry**: $0-26 (free tier sufficient for small bots)
+- **Oracle Cloud**: $0 (Always Free ARM64 tier)
+
+**Total**: $0-50/month depending on usage
+
+## Security Best Practices
+
+### Network Security
+
+1. **Restrict database access**: Configure Neon to allow connections only from your VM's IP
+2. **Use TLS**: Always use `sslmode=require` for PostgreSQL and `rediss://` for Redis
+3. **Firewall**: Configure Oracle Cloud security lists to allow only necessary ports (22 for SSH, 8080 for health checks)
+
+### Secrets Management
+
+1. **Never commit secrets** to git
+2. **Rotate credentials** regularly
+3. **Use Doppler** for centralized secret management
+4. **Limit secret access** to only necessary users and services
+
+### Monitoring
+
+1. **Enable Sentry alerts** for error spikes
+2. **Monitor resource usage** in Neon and Upstash dashboards
+3. **Set up uptime monitoring** for the HTTP health check endpoint
+4. **Review Sentry issues** regularly
+
+## Next Steps
+
+- Review [Configuration](/deployment/configuration) for environment setup
+- See [Environment Variables](/deployment/environment-variables) for complete variable reference
+- Set up monitoring alerts in Sentry
+- Configure Doppler for automated secret syncing

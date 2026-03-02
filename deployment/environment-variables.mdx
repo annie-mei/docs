@@ -1,0 +1,294 @@
+---
+title: Environment Variables
+description: Complete reference of all environment variables used by Annie Mei
+---
+
+## Overview
+
+Annie Mei is configured entirely through environment variables. This page documents all required and optional variables extracted from the source code.
+
+## Required Variables
+
+These environment variables **must** be set for Annie Mei to run.
+
+### Discord
+
+<ParamField path="DISCORD_TOKEN" type="string" required>
+  Discord bot token from the [Discord Developer Portal](https://discord.com/developers/applications).
+  
+  Used in: `src/main.rs:203`
+</ParamField>
+
+### Database
+
+<ParamField path="DATABASE_URL" type="string" required>
+  PostgreSQL connection string in the format:
+  
+  ```
+  postgres://user:password@host:port/database?sslmode=require
+  ```
+  
+  Used for storing user registrations and AniList account links.
+  
+  Defined in: `src/utils/statics.rs:17`
+</ParamField>
+
+### Cache
+
+<ParamField path="REDIS_URL" type="string" required>
+  Redis connection string for caching API responses.
+  
+  Format for standard Redis:
+  ```
+  redis://default:password@host:port
+  ```
+  
+  Format for Redis with TLS (Upstash):
+  ```
+  rediss://default:password@host:port
+  ```
+  
+  Defined in: `src/utils/statics.rs:13`
+</ParamField>
+
+### Monitoring
+
+<ParamField path="SENTRY_DSN" type="string" required>
+  Sentry project DSN for error tracking and performance monitoring.
+  
+  Format:
+  ```
+  https://<key>@<org>.ingest.sentry.io/<project>
+  ```
+  
+  Used in: `src/main.rs:128`
+  
+  Defined in: `src/utils/statics.rs:10`
+</ParamField>
+
+<ParamField path="ENV" type="string" required>
+  Environment name for categorizing errors and logs in Sentry.
+  
+  Common values:
+  - `development`
+  - `staging`
+  - `production`
+  
+  Used in: `src/main.rs:127`
+  
+  Defined in: `src/utils/statics.rs:9`
+</ParamField>
+
+### External APIs
+
+<ParamField path="SPOTIFY_CLIENT_ID" type="string" required>
+  Spotify API client ID for theme song Spotify link lookups.
+  
+  Get from: [Spotify for Developers](https://developer.spotify.com/dashboard)
+  
+  Defined in: `src/utils/statics.rs:14`
+</ParamField>
+
+<ParamField path="SPOTIFY_CLIENT_SECRET" type="string" required>
+  Spotify API client secret.
+  
+  Defined in: `src/utils/statics.rs:15`
+</ParamField>
+
+<ParamField path="MAL_CLIENT_ID" type="string" required>
+  MyAnimeList API client ID for anime theme song lookups.
+  
+  Get from: [MyAnimeList API](https://myanimelist.net/apiconfig)
+  
+  Defined in: `src/utils/statics.rs:16`
+</ParamField>
+
+### Privacy
+
+<ParamField path="USERID_HASH_SALT" type="string" required>
+  Salt used for hashing Discord user IDs before sending to Sentry.
+  
+  This ensures user privacy in logs while still allowing error correlation.
+  
+  **Important**: Keep this value secret and consistent across deployments.
+  
+  Defined in: `src/utils/statics.rs:18`
+</ParamField>
+
+## Optional Variables
+
+These variables have defaults or are optional.
+
+### Monitoring
+
+<ParamField path="SENTRY_TRACES_SAMPLE_RATE" type="float" default="0.0">
+  Percentage of traces to send to Sentry for performance monitoring.
+  
+  - **Range**: `0.0` to `1.0`
+  - **Default**: `0.0` (disabled)
+  - **Recommended for production**: `0.1` (10%)
+  
+  Invalid values will default to `0.0` with a warning.
+  
+  Used in: `src/main.rs:129-137`
+  
+  Defined in: `src/utils/statics.rs:11`
+</ParamField>
+
+### Server
+
+<ParamField path="SERVER_PORT" type="integer" default="8080">
+  Port for the HTTP health check server.
+  
+  The server provides endpoints for monitoring and load balancer health checks.
+  
+  Defined in: `src/utils/statics.rs:19-20`
+</ParamField>
+
+### Logging
+
+<ParamField path="RUST_LOG" type="string" default="info,serenity=warn">
+  Controls log level and filtering using the `tracing-subscriber` EnvFilter format.
+  
+  Examples:
+  - `debug` - Debug level for all modules
+  - `info,serenity=warn` - Info level, but warn for Serenity
+  - `annie_mei=trace` - Trace level for annie_mei module only
+  
+  Used in: `src/main.rs:176-177`
+</ParamField>
+
+## Variable Reference by Service
+
+### Discord Integration
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `DISCORD_TOKEN` | string | Yes | Bot authentication token |
+
+### Database (PostgreSQL)
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `DATABASE_URL` | string | Yes | PostgreSQL connection string |
+
+### Cache (Redis)
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `REDIS_URL` | string | Yes | Redis connection string |
+
+### External APIs
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `SPOTIFY_CLIENT_ID` | string | Yes | Spotify API client ID |
+| `SPOTIFY_CLIENT_SECRET` | string | Yes | Spotify API client secret |
+| `MAL_CLIENT_ID` | string | Yes | MyAnimeList API client ID |
+
+### Monitoring (Sentry)
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `SENTRY_DSN` | string | Yes | Sentry project DSN |
+| `ENV` | string | Yes | Environment name |
+| `SENTRY_TRACES_SAMPLE_RATE` | float | No | Trace sampling rate (0.0-1.0) |
+
+### Privacy
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `USERID_HASH_SALT` | string | Yes | Salt for hashing user IDs |
+
+### Server
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `SERVER_PORT` | integer | No | HTTP server port (default: 8080) |
+
+## Example Configuration
+
+### Development
+
+```bash
+# Discord
+DISCORD_TOKEN=your_discord_token
+
+# Database
+DATABASE_URL=postgres://user:password@localhost:5432/annie_mei
+
+# Cache
+REDIS_URL=redis://localhost:6379
+
+# External APIs
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+MAL_CLIENT_ID=your_mal_client_id
+
+# Monitoring
+SENTRY_DSN=https://key@org.ingest.sentry.io/project
+ENV=development
+SENTRY_TRACES_SAMPLE_RATE=0.0
+
+# Privacy
+USERID_HASH_SALT=random_salt_value_keep_secret
+
+# Server
+SERVER_PORT=8080
+
+# Logging
+RUST_LOG=debug,serenity=warn
+```
+
+### Production
+
+```bash
+# Discord
+DISCORD_TOKEN=your_discord_token
+
+# Database (Neon PostgreSQL)
+DATABASE_URL=postgres://user:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
+
+# Cache (Upstash Redis)
+REDIS_URL=rediss://default:password@region.upstash.io:port
+
+# External APIs
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+MAL_CLIENT_ID=your_mal_client_id
+
+# Monitoring
+SENTRY_DSN=https://key@org.ingest.sentry.io/project
+ENV=production
+SENTRY_TRACES_SAMPLE_RATE=0.1
+
+# Privacy
+USERID_HASH_SALT=random_salt_value_keep_secret
+
+# Server
+SERVER_PORT=8080
+
+# Logging
+RUST_LOG=info,serenity=warn
+```
+
+## Security Best Practices
+
+1. **Never commit** `.env` files or environment variables to git
+2. **Use a secrets manager** like Doppler for production
+3. **Rotate secrets regularly**, especially `DISCORD_TOKEN` and API credentials
+4. **Keep `USERID_HASH_SALT` consistent** across deployments to maintain log correlation
+5. **Use TLS connections** for database and Redis in production (`postgres://...?sslmode=require` and `rediss://`)
+6. **Restrict database access** to only the bot's IP address
+
+## Validation
+
+Annie Mei will panic on startup if required environment variables are missing:
+
+```rust
+Expected a token in the environment
+Expected a sentry dsn in the environment
+Expected an environment in the environment
+```
+
+Ensure all required variables are set before starting the bot.

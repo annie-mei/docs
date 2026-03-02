@@ -1,0 +1,454 @@
+---
+title: Adding Commands
+description: Step-by-step guide to creating new Discord slash commands
+---
+
+This guide walks through creating a new slash command in Annie Mei, following the project's conventions and patterns.
+
+## Command Structure
+
+All commands follow a consistent pattern with two main functions:
+
+- `register()` - Defines the slash command structure for Discord
+- `run()` - Executes the command logic when invoked
+
+Commands can be simple single-file modules or complex multi-file modules with subcommands.
+
+## Creating a Simple Command
+
+Let's create a `/ping` style command as an example.
+
+<Steps>
+  <Step title="Create the Command Module">
+    Create a new file in `src/commands/`:
+
+    ```bash
+    touch src/commands/example.rs
+    ```
+
+    For complex commands, create a directory:
+
+    ```bash
+    mkdir -p src/commands/example
+    touch src/commands/example/{mod.rs,command.rs}
+    ```
+  </Step>
+
+  <Step title="Implement register() Function">
+    Define the slash command structure that Discord will display to users:
+
+    ```rust src/commands/example.rs
+    use serenity::builder::CreateCommand;
+
+    pub fn register() -> CreateCommand {
+        CreateCommand::new("example")
+            .description("An example command")
+    }
+    ```
+
+    This creates a basic command with no options.
+  </Step>
+
+  <Step title="Implement run() Function">
+    Add the command execution logic:
+
+    ```rust src/commands/example.rs
+    use serenity::{
+        all::{CommandInteraction, CreateInteractionResponse, CreateInteractionResponseMessage},
+        prelude::*,
+    };
+    use tracing::info;
+
+    pub async fn run(ctx: &Context, interaction: &CommandInteraction) {
+        info!("Received example command");
+
+        let message = CreateInteractionResponseMessage::new()
+            .content("Hello from example command!");
+        let response = CreateInteractionResponse::Message(message);
+
+        let _ = interaction.create_response(&ctx.http, response).await;
+    }
+    ```
+  </Step>
+
+  <Step title="Export in mod.rs">
+    Add your new command to `src/commands/mod.rs`:
+
+    ```rust src/commands/mod.rs
+    pub mod anime;
+    pub mod help;
+    pub mod manga;
+    pub mod ping;
+    pub mod example;  // Add this line
+    ```
+  </Step>
+
+  <Step title="Register in main.rs ready Event">
+    Add your command to the registration list in `src/main.rs` at the `ready` event handler:
+
+    ```rust src/main.rs
+    async fn ready(&self, ctx: Context, ready: Ready) {
+        let commands: Vec<CreateCommand> = vec![
+            commands::ping::register(),
+            commands::help::register(),
+            commands::songs::command::register(),
+            commands::manga::command::register(),
+            commands::anime::command::register(),
+            commands::example::register(),  // Add this line
+        ];
+
+        let guild_commands = Command::set_global_commands(&ctx.http, commands).await;
+        // ...
+    }
+    ```
+
+    See `src/main.rs:92-100` for the full implementation.
+  </Step>
+
+  <Step title="Add Match Arm in interaction_create">
+    Route the command to your handler in `src/main.rs` at the `interaction_create` event:
+
+    ```rust src/main.rs
+    match command.data.name.as_str() {
+        "ping" => commands::ping::run(&ctx, &command).await,
+        "help" => commands::help::run(&ctx, &command).await,
+        "songs" => commands::songs::command::run(&ctx, &mut command).await,
+        "manga" => commands::manga::command::run(&ctx, &mut command).await,
+        "anime" => commands::anime::command::run(&ctx, &mut command).await,
+        "example" => commands::example::run(&ctx, &command).await,  // Add this line
+        _ => {
+            // Error handler...
+        }
+    };
+    ```
+
+    See `src/main.rs:66-84` for the full implementation.
+  </Step>
+</Steps>
+
+## Adding Command Options
+
+Commands can accept user input through options:
+
+```rust
+use serenity::{
+    all::CreateCommandOption,
+    builder::CreateCommand,
+    model::application::CommandOptionType,
+};
+
+pub fn register() -> CreateCommand {
+    CreateCommand::new("search")
+        .description("Search for something")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "query",
+                "What to search for",
+            )
+            .required(true),
+        )
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::Integer,
+                "limit",
+                "Maximum number of results",
+            )
+            .required(false)
+            .min_int_value(1)
+            .max_int_value(25),
+        )
+}
+```
+
+### Accessing Option Values
+
+Extract option values in your `run()` function:
+
+```rust
+pub async fn run(ctx: &Context, interaction: &mut CommandInteraction) {
+    // Get required string option
+    let Some(serenity::all::CommandDataOptionValue::String(query)) =
+        interaction.data.options.first().map(|opt| &opt.value)
+    else {
+        let builder = EditInteractionResponse::new()
+            .content("Missing required 'query' option");
+        let _ = interaction.edit_response(&ctx.http, builder).await;
+        return;
+    };
+
+    // Get optional integer option
+    let limit = interaction.data.options
+        .get(1)
+        .and_then(|opt| match &opt.value {
+            serenity::all::CommandDataOptionValue::Integer(val) => Some(*val),
+            _ => None,
+        })
+        .unwrap_or(10);  // Default value
+
+    info!("Search query: {}, limit: {}", query, limit);
+    // Command logic...
+}
+```
+
+See `src/commands/anime/command.rs:66-80` for a real-world example.
+
+## Deferring Long Operations
+
+Discord requires responses within 3 seconds. For long-running operations, defer the response immediately:
+
+```rust
+#[instrument(name = "command.example.run", skip(ctx, interaction))]
+pub async fn run(ctx: &Context, interaction: &mut CommandInteraction) {
+    // Defer immediately
+    let _ = interaction.defer(&ctx.http).await;
+
+    // Long operation (e.g., API call)
+    let result = tokio::task::spawn_blocking(move || {
+        // Blocking operation here
+    }).await;
+
+    // Edit the deferred response
+    let builder = EditInteractionResponse::new()
+        .content("Operation complete!");
+    let _ = interaction.edit_response(&ctx.http, builder).await;
+}
+```
+
+<Warning>
+  Always defer before operations that take longer than 3 seconds, including external API calls and database queries.
+</Warning>
+
+## Using Blocking Operations
+
+External API calls use blocking reqwest. Wrap them in `spawn_blocking`:
+
+```rust
+use tokio::task;
+use tracing::error;
+
+let result = match task::spawn_blocking(move || {
+    // Blocking HTTP request
+    let response = reqwest::blocking::get("https://api.example.com/data")?;
+    response.json()
+}).await {
+    Ok(Ok(data)) => Some(data),
+    Ok(Err(e)) => {
+        error!(error = %e, "API request failed");
+        None
+    }
+    Err(e) => {
+        error!(error = %e, "spawn_blocking panicked");
+        None
+    }
+};
+```
+
+See `src/commands/anime/command.rs:88-95` for a complete example.
+
+## Adding Instrumentation
+
+Use the `#[instrument]` attribute for tracing and observability:
+
+```rust
+use tracing::{info, instrument};
+
+#[instrument(name = "command.example.run", skip(ctx, interaction))]
+pub async fn run(ctx: &Context, interaction: &mut CommandInteraction) {
+    info!("Processing example command");
+    // Command logic...
+}
+```
+
+This creates a tracing span that appears in logs and Sentry:
+
+- `name` - Span name for filtering
+- `skip` - Fields to exclude from tracing (avoid logging sensitive data)
+
+## Code Style Conventions
+
+Follow these conventions when writing commands:
+
+<CardGroup cols={2}>
+  <Card title="Logging" icon="terminal">
+    Use `tracing` macros: `info!`, `debug!`, `error!`
+    
+    Never use `println!` or `eprintln!`
+  </Card>
+  
+  <Card title="Error Handling" icon="circle-exclamation">
+    Prefer `?` operator over `.unwrap()`
+    
+    Handle errors gracefully with user-friendly messages
+  </Card>
+  
+  <Card title="Privacy" icon="shield">
+    Hash user IDs before logging:
+    
+    ```rust
+    use crate::utils::privacy::hash_user_id;
+    
+    let hashed = hash_user_id(user.id.get());
+    ```
+  </Card>
+  
+  <Card title="Sentry" icon="radar">
+    Configure Sentry scope for commands:
+    
+    ```rust
+    use crate::utils::privacy::configure_sentry_scope;
+    
+    configure_sentry_scope("Example", user.id.get(), None);
+    ```
+  </Card>
+</CardGroup>
+
+## Testing Your Command
+
+### Unit Tests
+
+Add tests in the same file:
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_command_logic() {
+        // Test your command's core logic
+        assert_eq!(2 + 2, 4);
+    }
+}
+```
+
+See `src/commands/ping.rs:50-78` for a complete test example.
+
+### Running Tests
+
+```bash
+cargo test
+```
+
+Run tests for a specific module:
+
+```bash
+cargo test --test example
+```
+
+### Manual Testing
+
+1. Run the bot locally:
+   ```bash
+   cargo run
+   ```
+
+2. Use the command in Discord:
+   ```
+   /example
+   ```
+
+3. Check logs for tracing output:
+   ```bash
+   RUST_LOG=debug cargo run
+   ```
+
+## Example: Complete Command
+
+Here's a complete command implementation from `src/commands/ping.rs`:
+
+```rust
+use crate::utils::privacy::configure_sentry_scope;
+use super::response::CommandResponse;
+
+use serenity::{
+    all::{CommandInteraction, CreateInteractionResponse, CreateInteractionResponseMessage},
+    builder::CreateCommand,
+    prelude::*,
+};
+
+pub fn register() -> CreateCommand {
+    CreateCommand::new("ping").description("A ping command")
+}
+
+// Core logic (transport-agnostic, testable)
+pub fn handle_ping(user_mention: &str) -> CommandResponse {
+    CommandResponse::Message(format!(
+        "Hello {user_mention}! I'm Annie Mei, a bot that helps you find anime and manga!",
+    ))
+}
+
+// Serenity adapter (thin wrapper)
+pub async fn run(ctx: &Context, interaction: &CommandInteraction) {
+    let user = &interaction.user;
+    configure_sentry_scope("Ping", user.id.get(), None);
+
+    let reply = handle_ping(&user.mention().to_string());
+
+    let text = match reply {
+        CommandResponse::Message(text) => text,
+        _ => unreachable!("/ping always returns Message"),
+    };
+
+    let response_message = CreateInteractionResponseMessage::new().content(text);
+    let response = CreateInteractionResponse::Message(response_message);
+
+    let _ = interaction.create_response(&ctx.http, response).await;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ping_happy_path_returns_message_with_greeting() {
+        let response = handle_ping("<@123456>");
+        assert!(response.is_message());
+        let text = response.unwrap_message();
+        assert!(text.contains("<@123456>"));
+        assert!(text.contains("Annie Mei"));
+    }
+}
+```
+
+## File Organization Patterns
+
+Depending on complexity, organize your command:
+
+### Simple Command (Single File)
+
+```
+src/commands/ping.rs
+```
+
+Use for commands with minimal logic and no external queries.
+
+### Complex Command (Module)
+
+```
+src/commands/anime/
+├── mod.rs          # Re-exports
+├── command.rs      # register() and run()
+└── queries.rs      # GraphQL queries
+```
+
+Use for commands with:
+- GraphQL queries
+- Multiple helper functions
+- Complex business logic
+
+See `src/commands/anime/` for a complete example.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="sitemap" href="/development/architecture">
+    Understand the project structure
+  </Card>
+  <Card title="Database" icon="database" href="/development/database">
+    Add database models for persistent data
+  </Card>
+  <Card title="Testing" icon="flask" href="/development/testing">
+    Write comprehensive tests
+  </Card>
+</CardGroup>

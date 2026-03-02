@@ -1,0 +1,233 @@
+---
+title: Configuration
+description: Configure Annie Mei for production deployment
+---
+
+## Overview
+
+Annie Mei requires configuration through environment variables for Discord integration, database access, caching, external APIs, and monitoring. This guide covers the essential configuration steps for deploying the bot to production.
+
+## Prerequisites
+
+Before configuring Annie Mei, ensure you have:
+
+- A Discord bot token from the [Discord Developer Portal](https://discord.com/developers/applications)
+- PostgreSQL database (recommended: Neon)
+- Redis cache (recommended: Upstash)
+- Spotify API credentials
+- MyAnimeList API credentials
+- Sentry account for error tracking
+
+## Configuration Methods
+
+### Environment Variables
+
+Annie Mei reads all configuration from environment variables. You can set them:
+
+1. **Locally**: Using a `.env` file (not committed to git)
+2. **Production**: Using a secrets manager like [Doppler](https://www.doppler.com/)
+3. **CI/CD**: Using GitHub Actions secrets
+
+### Using Doppler (Recommended)
+
+Doppler is the recommended secrets management solution for Annie Mei:
+
+```bash
+# Install Doppler CLI
+curl -Ls https://cli.doppler.com/install.sh | sh
+
+# Login and setup
+doppler login
+doppler setup
+
+# Run the bot with Doppler
+doppler run -- ./annie-mei
+```
+
+## Required Configuration
+
+See the [Environment Variables](/deployment/environment-variables) page for a complete list of all required and optional environment variables.
+
+## Environment-Specific Settings
+
+### Development
+
+```bash
+ENV=development
+SENTRY_TRACES_SAMPLE_RATE=0.0  # Disable tracing in dev
+RUST_LOG=debug,serenity=warn   # Verbose logging
+```
+
+### Production
+
+```bash
+ENV=production
+SENTRY_TRACES_SAMPLE_RATE=0.1  # 10% trace sampling
+RUST_LOG=info,serenity=warn    # Standard logging
+```
+
+## Discord Configuration
+
+### Creating a Discord Bot
+
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+2. Click "New Application" and name it "Annie Mei"
+3. Navigate to the "Bot" section
+4. Click "Add Bot"
+5. Under "Token", click "Reset Token" and copy the value
+6. Set as `DISCORD_TOKEN` environment variable
+
+### Required Intents
+
+Annie Mei requires these Gateway Intents (configured in the Discord Developer Portal):
+
+- Guild Messages
+- Direct Messages
+- Guild Presences
+- Guilds
+
+### Inviting the Bot
+
+Generate an invite URL with these scopes and permissions:
+
+- **Scopes**: `bot`, `applications.commands`
+- **Permissions**: `Send Messages`, `Embed Links`, `Use Slash Commands`
+
+## API Configuration
+
+### Spotify API
+
+1. Go to [Spotify for Developers](https://developer.spotify.com/dashboard)
+2. Create a new app
+3. Copy the Client ID and Client Secret
+4. Set `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`
+
+### MyAnimeList API
+
+1. Go to [MyAnimeList API](https://myanimelist.net/apiconfig)
+2. Create a new API client
+3. Copy the Client ID
+4. Set `MAL_CLIENT_ID`
+
+## Database Setup
+
+See [Infrastructure](/deployment/infrastructure) for detailed PostgreSQL setup instructions.
+
+Once your database is provisioned, set the `DATABASE_URL`:
+
+```bash
+DATABASE_URL=postgres://user:password@host:5432/database?sslmode=require
+```
+
+### Running Migrations
+
+Before starting the bot, run database migrations:
+
+```bash
+# Install diesel CLI if not already installed
+cargo install diesel_cli --no-default-features --features postgres
+
+# Run migrations
+diesel migration run
+```
+
+The bot will automatically run migrations on startup.
+
+## Cache Setup
+
+See [Infrastructure](/deployment/infrastructure) for detailed Redis setup instructions.
+
+Set the `REDIS_URL` with your Redis connection string:
+
+```bash
+REDIS_URL=redis://default:password@host:port
+```
+
+For Upstash Redis with TLS:
+
+```bash
+REDIS_URL=rediss://default:password@host:port
+```
+
+## Monitoring & Error Tracking
+
+### Sentry Configuration
+
+1. Create a project in [Sentry](https://sentry.io)
+2. Copy the DSN from project settings
+3. Set `SENTRY_DSN` environment variable
+4. Configure trace sampling with `SENTRY_TRACES_SAMPLE_RATE` (0.0 to 1.0)
+
+### Privacy Settings
+
+Annie Mei implements privacy-focused monitoring:
+
+- User IDs are hashed using `USERID_HASH_SALT` before sending to Sentry
+- Database credentials in URLs are automatically redacted from error logs
+- See `src/main.rs:146` for URL credential redaction logic
+
+### Hash Lookup Utility
+
+To look up a user's hashed ID in Sentry logs:
+
+```bash
+./annie-mei hash <discord_user_id>
+```
+
+## Server Configuration
+
+### HTTP Health Check Server
+
+Annie Mei runs an HTTP health check server on port 8080 (configurable via `SERVER_PORT`):
+
+```bash
+SERVER_PORT=8080  # Default port
+```
+
+The server provides a `/healthz` endpoint that monitors the health of Redis and PostgreSQL connections:
+
+**Endpoint**: `GET /healthz`
+
+**Response (healthy)**:
+```json
+{
+  "status": "healthy",
+  "version": "2.5.3",
+  "services": {
+    "redis": "up",
+    "database": "up"
+  }
+}
+```
+
+**HTTP Status Codes**:
+- `200 OK` - All services healthy
+- `503 Service Unavailable` - One or more services down
+
+This endpoint is useful for:
+- Load balancer health checks
+- Monitoring and alerting systems
+- Verifying deployment success
+
+Defined in: `src/server.rs:14-61`
+
+## Validation
+
+Before deploying, validate your configuration:
+
+```bash
+# Check that all required environment variables are set
+./annie-mei --help
+
+# Test database connection
+diesel migration run
+
+# Run the bot in development mode
+RUST_LOG=debug ./annie-mei
+```
+
+## Next Steps
+
+- Review [Environment Variables](/deployment/environment-variables) for complete reference
+- Set up [Infrastructure](/deployment/infrastructure) for production deployment
+- Configure monitoring and alerts in Sentry

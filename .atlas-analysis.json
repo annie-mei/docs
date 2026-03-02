@@ -1,0 +1,73 @@
+{
+  "projectType": "general",
+  "projectName": "Annie Mei",
+  "projectDescription": "A Discord bot written in Rust that fetches anime and manga information from AniList, with theme song lookups powered by MyAnimeList and Spotify.",
+  "theme": "aspen",
+  "primaryColor": "#e4a015",
+  "lightColor": "#f5b84a",
+  "darkColor": "#b8761a",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "introduction",
+          "quickstart",
+          "installation"
+        ]
+      },
+      {
+        "group": "Commands",
+        "pages": [
+          "commands/overview",
+          "commands/anime",
+          "commands/manga",
+          "commands/songs",
+          "commands/register",
+          "commands/help"
+        ]
+      },
+      {
+        "group": "Development",
+        "pages": [
+          "development/architecture",
+          "development/setup",
+          "development/adding-commands",
+          "development/database",
+          "development/testing"
+        ]
+      },
+      {
+        "group": "Deployment",
+        "pages": [
+          "deployment/configuration",
+          "deployment/environment-variables",
+          "deployment/infrastructure"
+        ]
+      },
+      {
+        "group": "API Reference",
+        "pages": [
+          "api/anilist",
+          "api/myanimelist",
+          "api/spotify"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Fetch detailed anime/manga information from AniList",
+    "Look up opening and ending theme songs with Spotify links",
+    "Link AniList accounts to show guild members' scores",
+    "Full Japanese kana support for searches",
+    "Built with Rust and Serenity for high performance"
+  ],
+  "publicApiSurface": [
+    "/help - Shows available commands",
+    "/ping - Bot health check",
+    "/register - Link your AniList account",
+    "/anime <search> - Look up anime by name or AniList ID",
+    "/manga <search> - Look up manga by name or AniList ID",
+    "/songs <search> - Find theme songs for an anime"
+  ]
+}

@@ -1,0 +1,255 @@
+---
+title: Spotify API
+description: Integration for finding and linking anime theme songs on Spotify
+---
+
+Annie Mei uses the [Spotify Web API](https://developer.spotify.com/documentation/web-api) to search for anime opening and ending theme songs and provide direct links to them. This enhances the theme song information from MyAnimeList with playable music links.
+
+## Authentication
+
+The bot uses the **Client Credentials Flow** for server-to-server authentication. This requires:
+
+```rust
+RSPOTIFY_CLIENT_ID
+RSPOTIFY_CLIENT_SECRET
+```
+
+Register your application at the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) to obtain these credentials.
+
+### Client Setup
+
+```rust
+fn get_spotify_client() -> ClientCredsSpotify {
+    let client_id = env::var(SPOTIFY_CLIENT_ID)
+        .expect("Expected a spotify client id in the environment");
+    let client_secret = env::var(SPOTIFY_CLIENT_SECRET)
+        .expect("Expected a spotify client secret in the environment");
+    let credentials = Credentials {
+        id: client_id,
+        secret: Some(client_secret),
+    };
+    let spotify = ClientCredsSpotify::new(credentials);
+    spotify
+}
+```
+
+Source: [src/utils/spotify.rs:15-27](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L15-L27)
+
+## Search Functionality
+
+The main function searches for a song using both romaji and kana (Japanese) names:
+
+```rust
+pub fn get_song_url(
+    romaji_name: String,
+    kana_name: Option<String>,
+    artist_name: String,
+) -> Option<String>
+```
+
+Source: [src/utils/spotify.rs:29-33](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L29-L33)
+
+### Search Strategy
+
+1. **Try Romaji First**: Search using the romanized song name
+2. **Fallback to Kana**: If no results, try the native Japanese name (if available)
+3. **Return URL**: Return the Spotify track URL from the top result
+
+```rust
+let romaji_search = send_search_request(&romaji_name, &artist_name);
+match romaji_search {
+    Ok(search_result) => {
+        if let Some(url) = get_url_from_search_result(search_result) {
+            return Some(url);
+        } else if let Some(kana_name) = kana_name {
+            let kana_search = send_search_request(&kana_name, &artist_name);
+            // ... handle kana search result
+        }
+    }
+}
+```
+
+Source: [src/utils/spotify.rs:49-82](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L49-L82)
+
+## Search Request
+
+Searches are formatted as combined track and artist queries:
+
+```rust
+fn send_search_request(
+    song_name: &String,
+    artist_name: &String,
+) -> Result<SearchResult, ClientError> {
+    let spotify = get_spotify_client();
+    spotify.request_token().unwrap();
+    spotify.search(
+        format!("track:{song_name} artist:{artist_name}").as_str(),
+        SearchType::Track,
+        Some(Market::Country(Country::UnitedStates)),
+        None,
+        Some(5),  // Limit to top 5 results
+        None,
+    )
+}
+```
+
+Source: [src/utils/spotify.rs:89-103](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L89-L103)
+
+### Search Parameters
+
+- **Query**: `track:{song_name} artist:{artist_name}`
+- **Type**: Track search only
+- **Market**: United States (for content availability)
+- **Limit**: Top 5 results
+
+## Result Parsing
+
+The top search result's Spotify URL is extracted:
+
+```rust
+fn get_url_from_search_result(search_result: SearchResult) -> Option<String> {
+    if let SearchResult::Tracks(page) = search_result {
+        if !page.items.is_empty() {
+            let track = &page.items[0];
+            return Some(track.external_urls["spotify"].to_owned());
+        }
+        None
+    } else {
+        None
+    }
+}
+```
+
+Source: [src/utils/spotify.rs:105-118](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L105-L118)
+
+## Redis Caching
+
+Search results are cached in Redis to reduce API calls and improve response times:
+
+```rust
+let cache_key = format!("{romaji_name}:{kana_name:#?}:{artist_name}");
+match check_cache(&cache_key) {
+    Ok(value) => {
+        return match value.as_str() {
+            "None" => None,
+            _ => Some(value),
+        };
+    }
+    Err(e) => {
+        // Cache miss, proceed with API search
+    }
+};
+```
+
+Source: [src/utils/spotify.rs:35-47](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L35-L47)
+
+### Cache Strategy
+
+- **Key Format**: `{romaji_name}:{kana_name}:{artist_name}`
+- **Cached on Success**: Stores the Spotify URL
+- **Cached on Failure**: Stores `"None"` to avoid repeated failed searches
+- **Cache Duration**: Determined by Redis configuration
+
+```rust
+try_to_cache_response(&cache_key, &url);  // Cache successful result
+try_to_cache_response(&cache_key, "None");  // Cache negative result
+```
+
+Source: [src/utils/spotify.rs:54](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L54) and [src/utils/spotify.rs:85](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L85)
+
+## Usage Example
+
+The Spotify integration is called from the MyAnimeList response transformer:
+
+```rust
+use crate::utils::spotify::get_song_url;
+
+let romaji_name = "Guren no Yumiya".to_string();
+let kana_name = Some("紅蓮の弓矢".to_string());
+let artist_name = "Linked Horizon".to_string();
+
+let spotify_url = get_song_url(romaji_name, kana_name, artist_name);
+
+match spotify_url {
+    Some(url) => {
+        // Create clickable link in Discord embed
+        let link = format!("[**{}**]({})", song_name, url);
+    }
+    None => {
+        // Display song name without link
+        let text = format!("**{}**", song_name);
+    }
+}
+```
+
+Source: [src/models/mal_response.rs:99-108](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L99-L108)
+
+## Error Handling
+
+The search function returns `Option<String>` for graceful handling:
+
+- **`Some(url)`**: Song found on Spotify
+- **`None`**: No match found (displays unlinked song name)
+
+```rust
+match romaji_search {
+    Ok(search_result) => {
+        // Process result
+    }
+    Err(err) => {
+        info!("Could not find track: {err:#?}");
+    }
+}
+```
+
+Source: [src/utils/spotify.rs:83-84](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L83-L84)
+
+## Rate Limiting
+
+Spotify enforces rate limits on their API:
+
+- **Default Limit**: 180 requests per minute for non-premium users
+- **Mitigation**: Redis caching significantly reduces API calls
+- **Best Practice**: Implement exponential backoff for 429 errors
+
+The `rspotify` library handles token management automatically, requesting new tokens as needed.
+
+## Dependencies
+
+The Spotify integration uses the `rspotify` crate:
+
+```toml
+[dependencies]
+rspotify = { version = "0.12", default-features = false, features = ["client-reqwest"] }
+```
+
+Key imports:
+
+```rust
+use rspotify::{
+    ClientCredsSpotify, 
+    ClientError, 
+    Credentials,
+    model::{Country, Market, SearchResult, SearchType},
+    prelude::*,
+};
+```
+
+Source: [src/utils/spotify.rs:1-10](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L1-L10)
+
+## Logging
+
+The integration includes detailed logging for debugging:
+
+```rust
+info!("Spotify client established");
+info!("Romaji Song Name: {:#?}", romaji_name);
+info!("Kana Song Name: {:#?}", kana_name);
+info!("Searched track: {search_result:#?}");
+info!("Found track: {track:#?}");
+info!("Spotify Url: {:#?}", spotify_url);
+info!("Cache hit for {:#?}", cache_key);
+info!("Cache miss for {:#?} with error {:#?}", cache_key, e);
+```
+
+These logs help track search performance, cache effectiveness, and API response quality.

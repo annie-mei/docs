@@ -1,0 +1,105 @@
+---
+title: Commands Overview
+description: Complete guide to Annie Mei's Discord slash commands
+---
+
+Annie Mei provides slash commands for looking up anime and manga information from AniList, finding theme songs, and linking your AniList profile to show guild members' scores.
+
+## Available Commands
+
+<CardGroup cols={2}>
+  <Card title="/anime" icon="tv" href="/commands/anime">
+    Fetch detailed anime information from AniList
+  </Card>
+  <Card title="/manga" icon="book" href="/commands/manga">
+    Look up manga details and metadata
+  </Card>
+  <Card title="/songs" icon="music" href="/commands/songs">
+    Find opening and ending theme songs with Spotify links
+  </Card>
+  <Card title="/register" icon="user-plus" href="/commands/register">
+    Link your AniList account to your Discord profile
+  </Card>
+  <Card title="/help" icon="circle-question" href="/commands/help">
+    View command reference and usage tips
+  </Card>
+  <Card title="/ping" icon="heart-pulse" href="/commands/help#ping">
+    Check if the bot is online and responding
+  </Card>
+</CardGroup>
+
+## Search Tips
+
+All media lookup commands (`/anime`, `/manga`, `/songs`) accept flexible search inputs:
+
+<AccordionGroup>
+  <Accordion title="AniList IDs for exact matches">
+    Use the numeric ID from AniList URLs for guaranteed accuracy:
+    ```
+    /anime search:21
+    /manga search:30013
+    ```
+    The ID appears in the URL: `https://anilist.co/anime/21` → ID is `21`
+  </Accordion>
+
+  <Accordion title="Japanese kana and kanji">
+    Full Japanese character support for searches:
+    ```
+    /manga search:きめつのやいば
+    /anime search:ワンピース
+    ```
+  </Accordion>
+
+  <Accordion title="Numeric titles require quotes">
+    Wrap number-based titles in quotes:
+    ```
+    /songs search:"86"
+    /anime search:"91 Days"
+    ```
+  </Accordion>
+
+  <Accordion title="Try multiple variations">
+    If no result is found, try:
+    - Romaji version: `One Piece`
+    - English title: `Demon Slayer`
+    - Alternative spellings: `Jujutsu Kaisen` vs `Jujutsyu Kaisen`
+  </Accordion>
+</AccordionGroup>
+
+## Guild Features
+
+When you use `/anime` or `/manga` commands in a Discord server where members have registered their AniList accounts:
+
+- The bot shows which guild members are watching/reading the media
+- Displays each member's score and status (watching, completed, etc.)
+- Only visible to users who have linked their AniList profile with `/register`
+
+<Note>
+  Guild member data only appears if multiple people in your server have registered their AniList accounts.
+</Note>
+
+## Getting Started
+
+<Steps>
+  <Step title="Link your AniList account">
+    Run `/register anilist:<username>` to enable guild features and personalized data.
+  </Step>
+  <Step title="Search for media">
+    Use `/anime` or `/manga` with an AniList ID or search term.
+  </Step>
+  <Step title="Find theme songs">
+    Use `/songs` to get opening/ending tracks with Spotify links.
+  </Step>
+</Steps>
+
+## Command Response Times
+
+All commands defer the initial response to prevent Discord timeouts. Expect:
+
+- **Fast lookups** (by AniList ID): ~1-2 seconds
+- **Search queries**: 2-4 seconds depending on AniList API response
+- **Theme songs**: 3-5 seconds (fetches from MyAnimeList and Spotify)
+
+<Warning>
+  If a command takes longer than 15 seconds, the bot may have encountered an API issue. Try again or check `/ping` to verify the bot is online.
+</Warning>

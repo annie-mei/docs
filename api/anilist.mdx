@@ -1,0 +1,446 @@
+---
+title: AniList API
+description: GraphQL integration for fetching anime and manga metadata
+---
+
+Annie Mei uses the [AniList GraphQL API](https://anilist.gitbook.io/anilist-apiv2-docs/) to fetch comprehensive anime and manga metadata. All queries are sent to the official AniList endpoint with standard GraphQL request formatting.
+
+## Endpoint
+
+```rust
+https://graphql.anilist.co/
+```
+
+All requests are sent via HTTP POST with the following headers:
+
+```rust
+Content-Type: application/json
+Accept: application/json
+```
+
+Source: [src/utils/requests/anilist.rs:10-24](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/requests/anilist.rs#L10-L24)
+
+## Anime Queries
+
+### Fetch Anime by ID
+
+Retrieves detailed information for a specific anime using its AniList ID.
+
+```graphql
+query ($id: Int) {
+  Media (id: $id, type: ANIME) {
+    type
+    id
+    idMal
+    title {
+      romaji
+      english
+      native
+    }
+    synonyms
+    season
+    seasonYear
+    format
+    status
+    episodes
+    nextAiringEpisode {
+      episode
+    }
+    duration
+    genres
+    source
+    coverImage {
+      extraLarge
+      large
+      medium
+      color
+    }
+    averageScore
+    studios {
+      edges {
+        id
+        isMain
+      }
+      nodes {
+        id
+        name
+      }
+    }
+    siteUrl
+    externalLinks {
+      url
+      type
+    }
+    trailer {
+      id
+      site
+    }
+    description
+    tags {
+      name
+    }
+  }
+}
+```
+
+Source: [src/commands/anime/queries.rs:1-56](https://github.com/InfernapeXavier/annie-mei/blob/main/src/commands/anime/queries.rs#L1-L56)
+
+### Search Anime
+
+Searches for anime using a text query with pagination support.
+
+```graphql
+query ($page: Int, $perPage: Int, $search: String) {
+  Page(page: $page, perPage: $perPage) {
+    pageInfo {
+      total
+      currentPage
+      lastPage
+      hasNextPage
+      perPage
+    }
+    media(search: $search) {
+      type
+      id
+      idMal
+      title {
+        romaji
+        english
+        native
+      }
+      synonyms
+      season
+      seasonYear
+      format
+      status
+      episodes
+      nextAiringEpisode {
+        episode
+      }
+      duration
+      genres
+      source
+      coverImage {
+        extraLarge
+        large
+        medium
+        color
+      }
+      averageScore
+      studios {
+        edges {
+          id
+          isMain
+        }
+        nodes {
+          id
+          name
+        }
+      }
+      siteUrl
+      externalLinks {
+        url
+        type
+      }
+      trailer {
+        id
+        site
+      }
+      description
+      tags {
+        name
+      }
+    }
+  }
+}
+```
+
+Source: [src/commands/anime/queries.rs:58-123](https://github.com/InfernapeXavier/annie-mei/blob/main/src/commands/anime/queries.rs#L58-L123)
+
+## Manga Queries
+
+### Fetch Manga by ID
+
+Retrieves detailed information for a specific manga using its AniList ID.
+
+```graphql
+query ($id: Int) {
+  Media (id: $id, type: MANGA) {
+    type
+    id
+    idMal
+    title {
+      romaji
+      english
+      native
+    }
+    synonyms
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    format
+    status
+    chapters
+    volumes
+    genres
+    source
+    coverImage {
+      extraLarge
+      large
+      medium
+      color
+    }
+    averageScore
+    staff {
+      edges {
+        id
+        role
+      }
+      nodes {
+        id
+        name {
+          full
+        }
+        siteUrl
+      }
+    }
+    siteUrl
+    externalLinks {
+      url
+      type
+    }
+    description
+    tags {
+      name
+    }
+  }
+}
+```
+
+Source: [src/commands/manga/queries.rs:1-60](https://github.com/InfernapeXavier/annie-mei/blob/main/src/commands/manga/queries.rs#L1-L60)
+
+### Search Manga
+
+Searches for manga using a text query with pagination support.
+
+```graphql
+query ($page: Int, $perPage: Int, $search: String) {
+  Page(page: $page, perPage: $perPage) {
+    pageInfo {
+      total
+      currentPage
+      lastPage
+      hasNextPage
+      perPage
+    }
+    media(search: $search) {
+      type
+      id
+      idMal
+      title {
+        romaji
+        english
+        native
+      }
+      synonyms
+      startDate {
+        year
+        month
+        day
+      }
+      endDate {
+        year
+        month
+        day
+      }
+      format
+      status
+      chapters
+      volumes
+      genres
+      source
+      coverImage {
+        extraLarge
+        large
+        medium
+        color
+      }
+      averageScore
+      staff {
+        edges {
+          id
+          role
+        }
+        nodes {
+          id
+          name {
+            full
+          }
+          siteUrl
+        }
+      }
+      siteUrl
+      externalLinks {
+        url
+        type
+      }
+      description
+      tags {
+        name
+      }
+    }
+  }
+}
+```
+
+Source: [src/commands/manga/queries.rs:62-131](https://github.com/InfernapeXavier/annie-mei/blob/main/src/commands/manga/queries.rs#L62-L131)
+
+## Response Models
+
+### Anime Response
+
+The anime data is deserialized into the `Anime` struct:
+
+```rust
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Anime {
+    media_type: Option<String>,
+    id: u32,
+    id_mal: Option<u32>,
+    title: Title,
+    synonyms: Option<Vec<String>>,
+    season: Option<String>,
+    season_year: Option<u32>,
+    format: Option<String>,
+    status: Option<String>,
+    episodes: Option<u32>,
+    next_airing_episode: Option<NextAiringEpisode>,
+    duration: Option<u32>,
+    genres: Vec<String>,
+    source: Option<String>,
+    cover_image: CoverImage,
+    average_score: Option<u32>,
+    studios: Option<Studios>,
+    site_url: String,
+    external_links: Option<Vec<ExternalLinks>>,
+    trailer: Option<Trailer>,
+    description: Option<String>,
+    tags: Vec<Tag>,
+}
+```
+
+Source: [src/models/anilist_anime.rs:14-41](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/anilist_anime.rs#L14-L41)
+
+#### Supporting Structures
+
+```rust
+pub struct Studios {
+    pub edges: Vec<Edges>,
+    pub nodes: Vec<Nodes>,
+}
+
+pub struct Edges {
+    pub is_main: bool,
+}
+
+pub struct Nodes {
+    pub name: String,
+}
+
+pub struct Trailer {
+    pub id: String,
+    pub site: String,
+}
+
+pub struct NextAiringEpisode {
+    pub episode: Option<u32>,
+}
+```
+
+Source: [src/models/anilist_anime.rs:43-72](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/anilist_anime.rs#L43-L72)
+
+### Manga Response
+
+The manga data is deserialized into the `Manga` struct:
+
+```rust
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Manga {
+    media_type: Option<String>,
+    id: u32,
+    id_mal: Option<u32>,
+    title: Title,
+    synonyms: Option<Vec<String>>,
+    start_date: Option<AnilistDate>,
+    end_date: Option<AnilistDate>,
+    format: Option<String>,
+    status: Option<String>,
+    chapters: Option<u32>,
+    volumes: Option<u32>,
+    genres: Vec<String>,
+    source: Option<String>,
+    cover_image: CoverImage,
+    average_score: Option<u32>,
+    staff: Option<Staff>,
+    site_url: String,
+    external_links: Option<Vec<ExternalLinks>>,
+    description: Option<String>,
+    tags: Vec<Tag>,
+}
+```
+
+Source: [src/models/anilist_manga.rs:16-42](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/anilist_manga.rs#L16-L42)
+
+#### Supporting Structures
+
+```rust
+pub struct AnilistDate {
+    pub year: Option<u32>,
+    pub month: Option<u32>,
+    pub day: Option<u32>,
+}
+
+pub struct Staff {
+    pub edges: Vec<Edges>,
+    pub nodes: Vec<Nodes>,
+}
+
+pub struct Edges {
+    pub role: String,
+}
+
+pub struct Nodes {
+    pub name: StaffName,
+}
+
+pub struct StaffName {
+    pub full: String,
+}
+```
+
+Source: [src/models/anilist_manga.rs:44-71](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/anilist_manga.rs#L44-L71)
+
+## Data Transformations
+
+Both `Anime` and `Manga` models implement the `Transformers` trait which provides methods for formatting data for Discord embeds:
+
+- **Episode/Chapter counting**: For currently airing anime, displays aired episodes vs total (e.g., "7/12")
+- **Season formatting**: Combines season and year (e.g., "Fall 2024")
+- **Studio/Staff extraction**: Identifies main studios or story/art staff from the edges/nodes structure
+- **Link filtering**: Extracts streaming links for supported platforms (Netflix, Crunchyroll, HBO)
+- **Trailer formatting**: Converts YouTube trailer IDs to full URLs
+
+Source: [src/models/anilist_anime.rs:74-306](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/anilist_anime.rs#L74-L306) and [src/models/anilist_manga.rs:73-305](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/anilist_manga.rs#L73-L305)
+
+## Rate Limiting
+
+AniList does not currently enforce strict rate limits on their GraphQL API, but the bot uses blocking HTTP requests which naturally throttle request frequency. Future implementations may add explicit rate limiting or request caching.

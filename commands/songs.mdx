@@ -1,0 +1,167 @@
+---
+title: /songs
+description: Find anime opening and ending theme songs with Spotify links
+---
+
+## Overview
+
+The `/songs` command fetches opening (OP) and ending (ED) theme songs for an anime from MyAnimeList, with Spotify preview links when available.
+
+## Command Syntax
+
+```
+/songs search:<AniList ID or search term>
+```
+
+## Parameters
+
+<ParamField path="search" type="string" required>
+  AniList ID (numeric) or anime search term (works with romaji, English, or Japanese titles)
+</ParamField>
+
+## Usage Examples
+
+<Tabs>
+  <Tab title="By AniList ID">
+    ```
+    /songs search:21
+    ```
+    Returns theme songs for **One Piece** using its AniList ID.
+  </Tab>
+  <Tab title="By anime title">
+    ```
+    /songs search:Demon Slayer
+    ```
+    Searches for "Demon Slayer" and returns its theme songs.
+  </Tab>
+  <Tab title="Numeric titles">
+    ```
+    /songs search:"86"
+    ```
+    Wrap number-based titles in quotes.
+  </Tab>
+</Tabs>
+
+## Response Data
+
+The bot returns an embed with:
+
+<ResponseField name="Anime Title">
+  The full title of the anime (romaji or English)
+</ResponseField>
+
+<ResponseField name="Openings">
+  List of all opening themes with:
+  - Song title and episode range (e.g., "OP1: Episodes 1-50")
+  - Artist name
+  - Spotify link (if available)
+</ResponseField>
+
+<ResponseField name="Endings">
+  List of all ending themes with:
+  - Song title and episode range (e.g., "ED1: Episodes 1-25")
+  - Artist name
+  - Spotify link (if available)
+</ResponseField>
+
+<ResponseField name="Thumbnail">
+  Anime cover image from MyAnimeList
+</ResponseField>
+
+<ResponseField name="MyAnimeList Link">
+  Direct link to the anime's MyAnimeList page
+</ResponseField>
+
+## How It Works
+
+<Steps>
+  <Step title="Lookup on AniList">
+    The bot first resolves the search term to an anime entry on AniList.
+  </Step>
+  <Step title="Fetch from MyAnimeList">
+    Using the AniList data, the bot queries MyAnimeList for theme song listings.
+  </Step>
+  <Step title="Match with Spotify">
+    For each song, the bot searches Spotify to find preview links.
+  </Step>
+  <Step title="Return embed">
+    All songs are formatted into a Discord embed with clickable links.
+  </Step>
+</Steps>
+
+## Search Tips
+
+<Warning>
+  The `/songs` command only works for **anime**, not manga. If you search for a manga title, the bot will return "Could not find anime."
+</Warning>
+
+<AccordionGroup>
+  <Accordion title="No results found?">
+    If the bot returns `Could not find anime`, try:
+    - Verifying you're searching for an anime, not a manga
+    - Using the anime's AniList ID instead of a search term
+    - Using the exact romaji title from AniList
+  </Accordion>
+
+  <Accordion title="Missing Spotify links">
+    Not all songs have Spotify previews. The bot will still show:
+    - Song title
+    - Artist name
+    - Episode range
+    
+    But the Spotify link may be absent if the track isn't available on Spotify.
+  </Accordion>
+
+  <Accordion title="Long-running series">
+    Anime with many openings and endings (like One Piece or Naruto) may have very long response embeds. Discord limits embed field lengths, so some songs may be truncated.
+  </Accordion>
+</AccordionGroup>
+
+## Example Response
+
+For `/songs search:Demon Slayer`, you might see:
+
+```
+Title: Kimetsu no Yaiba
+
+Openings:
+OP1: "Gurenge" by LiSA (Episodes 1-26)
+[Spotify Link]
+
+Endings:
+ED1: "from the edge" by FictionJunction feat. LiSA (Episodes 1-26)
+[Spotify Link]
+
+MyAnimeList: https://myanimelist.net/anime/38000
+```
+
+## Limitations
+
+<Note>
+  - Only anime openings and endings are supported (no insert songs or OST tracks)
+  - Spotify links may be missing if the song isn't on Spotify
+  - Very new or niche anime may not have complete song data on MyAnimeList
+</Note>
+
+## Source Code Reference
+
+Implementation: `src/commands/songs/command.rs:18`
+
+The `register()` function defines the command structure:
+
+```rust
+pub fn register() -> CreateCommand {
+    CreateCommand::new("songs")
+        .description("Fetches the songs of an anime")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "search",
+                "Anilist ID or Search term",
+            )
+            .required(true),
+        )
+}
+```
+
+The command fetches data from MyAnimeList and Spotify via the `SongFetcher` utility at `src/commands/songs/fetcher.rs`.

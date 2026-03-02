@@ -1,0 +1,145 @@
+---
+title: /anime
+description: Fetch detailed anime information from AniList
+---
+
+## Overview
+
+The `/anime` command fetches comprehensive anime details from AniList, including metadata, streaming links, and guild member scores.
+
+## Command Syntax
+
+```
+/anime search:<AniList ID or search term>
+```
+
+## Parameters
+
+<ParamField path="search" type="string" required>
+  AniList ID (numeric) or search term (title in any language)
+</ParamField>
+
+## Usage Examples
+
+<Tabs>
+  <Tab title="By AniList ID">
+    ```
+    /anime search:21
+    ```
+    Returns **One Piece** using its exact AniList ID.
+  </Tab>
+  <Tab title="By English title">
+    ```
+    /anime search:Demon Slayer
+    ```
+    Searches for "Demon Slayer" and returns the best match.
+  </Tab>
+  <Tab title="By Japanese title">
+    ```
+    /anime search:鬼滅の刃
+    ```
+    Full kanji/kana support for native titles.
+  </Tab>
+  <Tab title="By Romaji">
+    ```
+    /anime search:Kimetsu no Yaiba
+    ```
+    Romaji searches work as expected.
+  </Tab>
+</Tabs>
+
+## Response Data
+
+The bot returns a rich embed with the following information:
+
+<ResponseField name="Title">
+  Displays romaji, English, and native (Japanese) titles
+</ResponseField>
+
+<ResponseField name="Metadata">
+  - **Format**: TV, Movie, OVA, ONA, Special, Music
+  - **Episodes**: Total episode count (or `?` if ongoing)
+  - **Duration**: Episode length in minutes
+  - **Season**: Premiere season and year
+  - **Status**: Releasing, Finished, Not Yet Released, Cancelled
+  - **Average Score**: Community rating (out of 100)
+</ResponseField>
+
+<ResponseField name="Genres & Tags">
+  AniList genres (Action, Adventure, etc.) and user-generated tags
+</ResponseField>
+
+<ResponseField name="Studios">
+  Main production studio
+</ResponseField>
+
+<ResponseField name="Description">
+  Synopsis (may contain spoilers for ongoing series)
+</ResponseField>
+
+<ResponseField name="Links">
+  - **AniList URL**: Direct link to the AniList page
+  - **Streaming services**: Crunchyroll, Funimation, etc. (if available)
+  - **Trailer**: YouTube embed (if available)
+</ResponseField>
+
+<ResponseField name="Guild Data" optional>
+  If guild members have registered their AniList accounts:
+  - Member names and their watch status (Watching, Completed, Dropped, etc.)
+  - Individual scores (out of 10)
+</ResponseField>
+
+## Search Tips
+
+<Tip>
+  **AniList IDs are the most reliable way to search.** Find the ID in the URL:
+  
+  `https://anilist.co/anime/21` → Use `/anime search:21`
+</Tip>
+
+<AccordionGroup>
+  <Accordion title="No results found?">
+    If the bot returns `Could not find anime`, try:
+    - Verifying the spelling
+    - Using the romaji title instead of English
+    - Searching with fewer words ("Jujutsu Kaisen" instead of "Jujutsu Kaisen Season 2")
+    - Using the AniList ID from the website
+  </Accordion>
+
+  <Accordion title="Numeric titles">
+    Wrap number-based titles in quotes:
+    ```
+    /anime search:"86"
+    /anime search:"91 Days"
+    ```
+  </Accordion>
+
+  <Accordion title="Special characters">
+    Most special characters work fine:
+    ```
+    /anime search:Re:Zero
+    /anime search:Fate/Zero
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Source Code Reference
+
+Implementation: `src/commands/anime/command.rs:27`
+
+The `register()` function defines the command structure:
+
+```rust
+pub fn register() -> CreateCommand {
+    CreateCommand::new("anime")
+        .description("Fetches the details for an anime")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "search",
+                "Anilist ID or Search term",
+            )
+            .required(true),
+        )
+}
+```

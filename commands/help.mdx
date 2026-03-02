@@ -1,0 +1,209 @@
+---
+title: /help & /ping
+description: Bot information and health check commands
+---
+
+## Overview
+
+Annie Mei provides two utility commands for getting help and checking bot status:
+
+- `/help` - Displays a guide to available commands and usage tips
+- `/ping` - Verifies the bot is online and responding
+
+---
+
+## /help Command
+
+### Command Syntax
+
+```
+/help
+```
+
+No parameters required.
+
+### Response Data
+
+The `/help` command returns an embed with:
+
+<ResponseField name="Title">
+  Personalized greeting with your Discord username
+</ResponseField>
+
+<ResponseField name="Description">
+  Overview of the bot's capabilities:
+  - Anime and manga detail lookups
+  - Theme song searches
+  - Guild member watch/read status
+</ResponseField>
+
+<ResponseField name="Getting Started">
+  Step-by-step instructions:
+  1. Link your AniList account with `/register`
+  2. Use `/anime` or `/manga` to search
+  3. Use `/songs` for theme songs
+</ResponseField>
+
+<ResponseField name="Commands">
+  Complete list of slash commands with syntax:
+  - `/anime search:<term or id>` - Anime details
+  - `/manga search:<term or id>` - Manga details
+  - `/songs search:<term or id>` - OP/ED songs + links
+  - `/register anilist:<username>` - Link AniList profile
+  - `/ping` - Bot health check
+  - `/help` - Show this guide
+</ResponseField>
+
+<ResponseField name="Tips">
+  Search recommendations:
+  - Full names, short names, or AniList IDs all work
+  - If no result is found, try a more specific query
+</ResponseField>
+
+<ResponseField name="Thumbnail">
+  Annie Mei character image (if available)
+</ResponseField>
+
+<ResponseField name="Footer">
+  Bot name and current timestamp
+</ResponseField>
+
+### Example Usage
+
+```
+/help
+```
+
+Returns the full help embed in the channel where you ran the command.
+
+### Source Code Reference
+
+Implementation: `src/commands/help.rs:13`
+
+The `register()` function defines the command:
+
+```rust
+pub fn register() -> CreateCommand {
+    CreateCommand::new("help").description("Shows how to use the bot")
+}
+```
+
+The embed is built in `src/commands/help.rs:23` with all command documentation.
+
+---
+
+## /ping Command
+
+### Command Syntax
+
+```
+/ping
+```
+
+No parameters required.
+
+### Response Message
+
+The `/ping` command returns a text message:
+
+```
+Hello @YourUsername! I'm Annie Mei, a bot that helps you find anime and manga!
+```
+
+### Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Health check" icon="heart-pulse">
+    Verify the bot is online and responding to commands
+  </Card>
+  <Card title="Test permissions" icon="shield-check">
+    Confirm the bot can read and send messages in the channel
+  </Card>
+  <Card title="Quick response" icon="bolt">
+    Get an instant reply to test latency
+  </Card>
+  <Card title="Introduction" icon="hand-wave">
+    Learn the bot's name and purpose
+  </Card>
+</CardGroup>
+
+### Example Usage
+
+```
+/ping
+```
+
+Returns:
+
+```
+Hello @Alice! I'm Annie Mei, a bot that helps you find anime and manga!
+```
+
+### Source Code Reference
+
+Implementation: `src/commands/ping.rs:11`
+
+The `register()` function defines the command:
+
+```rust
+pub fn register() -> CreateCommand {
+    CreateCommand::new("ping").description("A ping command")
+}
+```
+
+The response logic at `src/commands/ping.rs:21` uses a transport-agnostic handler:
+
+```rust
+pub fn handle_ping(user_mention: &str) -> CommandResponse {
+    CommandResponse::Message(format!(
+        "Hello {user_mention}! I'm Annie Mei, a bot that helps you find anime and manga!",
+    ))
+}
+```
+
+---
+
+## When to Use Each Command
+
+| Scenario | Command | Reason |
+|----------|---------|--------|
+| First time using the bot | `/help` | Get a full guide to all features |
+| Forgot command syntax | `/help` | See all commands with examples |
+| Bot seems unresponsive | `/ping` | Quick health check |
+| Want to test permissions | `/ping` | Minimal response to verify bot access |
+| Onboarding new users | `/help` | Share the embed for reference |
+
+<Tip>
+  Both `/help` and `/ping` respond instantly because they don't query external APIs. If either command fails, the bot may be offline or lacking permissions in your server.
+</Tip>
+
+---
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="/help or /ping doesn't respond">
+    **Possible causes:**
+    - Bot is offline or restarting
+    - Bot lacks permission to send messages in the channel
+    - Discord API issues
+    
+    **Solution:**
+    - Check bot's online status in the member list
+    - Verify the bot has "Send Messages" and "Use Application Commands" permissions
+    - Try again in a few seconds
+  </Accordion>
+
+  <Accordion title="/help image doesn't load">
+    If the help embed shows a broken thumbnail:
+    - The `mei.jpg` file may be missing from the bot's directory
+    - This doesn't affect functionality, only the visual appearance
+    - The rest of the help embed will still display correctly
+  </Accordion>
+
+  <Accordion title="/ping mentions the wrong user">
+    This shouldn't happen unless the bot has a critical bug. If `/ping` mentions someone else:
+    - Report the issue to the bot administrator
+    - Restart the bot
+  </Accordion>
+</AccordionGroup>
