@@ -43,7 +43,7 @@ These environment variables **must** be set for Annie Mei to run.
   redis://default:password@host:port
   ```
   
-  Format for Redis with TLS (Upstash):
+  Format for Redis with TLS:
   ```
   rediss://default:password@host:port
   ```
@@ -145,6 +145,28 @@ These variables have defaults or are optional.
   Defined in: `src/utils/statics.rs:19-20`
 </ParamField>
 
+### AI / LLM
+
+<ParamField path="GEMINI_API_KEY" type="string">
+  Enables Gemini or another OpenAI-compatible provider configured through the built-in LLM client.
+
+  If this variable is missing, the bot can continue running without LLM features.
+
+  Defined in: `src/utils/statics.rs:25`
+</ParamField>
+
+<ParamField path="LLM_MODEL" type="string" default="gemini-2.0-flash">
+  Optional model override for the LLM client.
+
+  Defined in: `src/utils/statics.rs:26`
+</ParamField>
+
+<ParamField path="LLM_BASE_URL" type="string" default="https://generativelanguage.googleapis.com/v1beta/openai">
+  Optional base URL override for an OpenAI-compatible chat completions API.
+
+  Defined in: `src/utils/statics.rs:27`
+</ParamField>
+
 ### Logging
 
 <ParamField path="RUST_LOG" type="string" default="info,serenity=warn">
@@ -206,6 +228,14 @@ These variables have defaults or are optional.
 |----------|------|----------|-------------|
 | `SERVER_PORT` | integer | No | HTTP server port (default: 8080) |
 
+### AI / LLM
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `GEMINI_API_KEY` | string | No | API key for Gemini or another compatible provider |
+| `LLM_MODEL` | string | No | Model override for the LLM client |
+| `LLM_BASE_URL` | string | No | Base URL override for an OpenAI-compatible API |
+
 ## Example Configuration
 
 ### Development
@@ -246,11 +276,11 @@ RUST_LOG=debug,serenity=warn
 # Discord
 DISCORD_TOKEN=your_discord_token
 
-# Database (Neon PostgreSQL)
-DATABASE_URL=postgres://user:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
+# Database
+DATABASE_URL=postgres://user:password@db.example.com/annie_mei?sslmode=require
 
-# Cache (Upstash Redis)
-REDIS_URL=rediss://default:password@region.upstash.io:port
+# Cache
+REDIS_URL=rediss://default:password@redis.example.com:6379
 
 # External APIs
 SPOTIFY_CLIENT_ID=your_spotify_client_id
@@ -275,7 +305,7 @@ RUST_LOG=info,serenity=warn
 ## Security Best Practices
 
 1. **Never commit** `.env` files or environment variables to git
-2. **Use a secrets manager** like Doppler for production
+2. **Use a secrets manager** if you need centralized secret handling in production
 3. **Rotate secrets regularly**, especially `DISCORD_TOKEN` and API credentials
 4. **Keep `USERID_HASH_SALT` consistent** across deployments to maintain log correlation
 5. **Use TLS connections** for database and Redis in production (`postgres://...?sslmode=require` and `rediss://`)
