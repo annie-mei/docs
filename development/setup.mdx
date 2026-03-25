@@ -9,10 +9,10 @@ This guide walks you through setting up Annie Mei for local development.
 
 Ensure you have the following installed:
 
-- **Rust** (2024 edition or later) - [Install via rustup](https://rustup.rs/)
+- **Rust 1.94 or later** - [Install via rustup](https://rustup.rs/)
 - **PostgreSQL** - For database storage
 - **Redis** - For caching API responses
-- **Diesel CLI** - For managing database migrations
+- **Diesel CLI** (optional) - For creating or running migrations manually during development
 
 ### Install Diesel CLI
 
@@ -25,8 +25,8 @@ cargo install diesel_cli --no-default-features --features postgres
 <Steps>
   <Step title="Clone from GitHub">
     ```bash
-    git clone https://github.com/InfernapeXavier/Annie-Mei.git
-    cd Annie-Mei
+    git clone https://github.com/annie-mei/annie-mei.git
+    cd annie-mei
     ```
   </Step>
 
@@ -63,8 +63,14 @@ SENTRY_TRACES_SAMPLE_RATE=0.1
 ENV=development
 
 # Spotify API (for theme songs)
-RSPOTIFY_CLIENT_ID=your_spotify_client_id
-RSPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+
+# MyAnimeList API
+MAL_CLIENT_ID=your_mal_client_id
+
+# Privacy
+USERID_HASH_SALT=generate_a_random_secret_value
 ```
 
 <AccordionGroup>
@@ -73,7 +79,7 @@ RSPOTIFY_CLIENT_SECRET=your_spotify_client_secret
     2. Create a new application
     3. Navigate to **Bot** section
     4. Click **Reset Token** and copy the token
-    5. Enable **Message Content Intent** and **Server Members Intent**
+    5. Copy the token into `DISCORD_TOKEN`
   </Accordion>
 
   <Accordion title="Get Spotify API Credentials">
@@ -82,8 +88,8 @@ RSPOTIFY_CLIENT_SECRET=your_spotify_client_secret
     3. Copy the **Client ID** and **Client Secret**
   </Accordion>
 
-  <Accordion title="Set up Sentry (Optional)">
-    For local development, you can use a dummy Sentry DSN or skip error tracking:
+  <Accordion title="Set up Sentry DSN">
+    The current app startup expects `SENTRY_DSN` to be set. For local development, you can use a dummy DSN:
 
     ```bash
     SENTRY_DSN=https://example@sentry.io/123456
@@ -109,13 +115,13 @@ RSPOTIFY_CLIENT_SECRET=your_spotify_client_secret
   </Step>
 
   <Step title="Run Migrations">
-    Apply all database migrations using Diesel:
+    Apply all database migrations using Diesel if you want to prepare the database before starting the bot:
 
     ```bash
     diesel migration run
     ```
 
-    This creates the required tables and indexes. See the [Database](/development/database) guide for more details.
+    Annie Mei also runs embedded migrations automatically on startup, so this step is optional for a normal local run. See the [Database](/development/database) guide for more details.
   </Step>
 
   <Step title="Verify Schema">
@@ -226,7 +232,6 @@ If you see the response, your development environment is ready!
 <AccordionGroup>
   <Accordion title="Bot doesn't show online">
     - Check that `DISCORD_TOKEN` is correct
-    - Verify the bot has **Message Content Intent** enabled in Discord Developer Portal
     - Check logs for connection errors: `RUST_LOG=serenity=debug cargo run`
   </Accordion>
 

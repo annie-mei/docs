@@ -5,6 +5,10 @@ description: Managing database migrations with Diesel ORM
 
 Annie Mei uses [Diesel ORM](https://diesel.rs/) for type-safe database interactions and [PostgreSQL](https://www.postgresql.org/) for data storage.
 
+<Note>
+  The current implementation uses an `r2d2` connection pool in `src/utils/database.rs` and runs embedded migrations on startup. Use those helpers as the source of truth when the examples on this page are too generic.
+</Note>
+
 ## Overview
 
 Diesel provides:
@@ -238,8 +242,10 @@ Diesel queries are type-safe and compile-time checked:
 use diesel::prelude::*;
 use crate::schema::users::dsl::*;
 use crate::models::db::user::User;
+use crate::utils::database::{create_pool, get_connection};
 
-let connection = &mut establish_connection();
+let pool = create_pool();
+let connection = &mut get_connection(&pool);
 let results = users
     .filter(discord_id.eq(123456789))
     .select(User::as_select())
@@ -291,27 +297,37 @@ diesel::delete(users.filter(discord_id.eq(123456789)))
 
 ## Database Connection
 
-Establish a connection in `src/utils/database.rs`:
+Create the pool and fetch a connection in `src/utils/database.rs`:
 
 ```rust
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
+use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 use std::env;
 
-pub fn establish_connection() -> PgConnection {
+pub type DbPool = Pool<ConnectionManager<PgConnection>>;
+pub type DbConnection = PooledConnection<ConnectionManager<PgConnection>>;
+
+pub fn create_pool() -> DbPool {
     let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL must be set");
-    
-    PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+
+    let manager = ConnectionManager::<PgConnection>::new(database_url);
+    Pool::builder()
+        .build(manager)
+        .expect("Error creating database pool")
+}
+
+pub fn get_connection(pool: &DbPool) -> DbConnection {
+    pool.get().expect("Error retrieving pooled database connection")
 }
 ```
 
-The bot establishes a connection at startup in `src/main.rs:199-201`:
+The bot creates the pool and runs migrations at startup in `src/main.rs:199-202`:
 
 ```rust
-info!("Initializing database connection");
-let connection = &mut utils::database::establish_connection();
+let database_pool = create_pool();
+let connection = &mut get_connection(&database_pool);
 run_migration(connection);
 ```
 
@@ -321,11 +337,12 @@ Annie Mei runs migrations automatically at startup using `diesel_migrations`:
 
 ```rust src/utils/database.rs
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use diesel::pg::PgConnection;
 
-pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
-pub fn run_migration(connection: &mut impl MigrationHarness<diesel::pg::Pg>) {
-    connection
+pub fn run_migration(conn: &mut PgConnection) {
+    conn
         .run_pending_migrations(MIGRATIONS)
         .expect("Failed to run migrations");
 }

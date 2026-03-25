@@ -153,8 +153,14 @@ The bot requires these environment variables to run:
 | `ENV`                     | Environment name (dev/staging/prod) |
 | `DATABASE_URL`            | PostgreSQL connection string       |
 | `REDIS_URL`               | Redis connection string            |
-| `RSPOTIFY_CLIENT_ID`      | Spotify API client ID              |
-| `RSPOTIFY_CLIENT_SECRET`  | Spotify API client secret          |
+| `SPOTIFY_CLIENT_ID`       | Spotify API client ID              |
+| `SPOTIFY_CLIENT_SECRET`   | Spotify API client secret          |
+| `MAL_CLIENT_ID`           | MyAnimeList API client ID          |
+| `USERID_HASH_SALT`        | Salt for hashing Discord user IDs in logs |
 | `SENTRY_TRACES_SAMPLE_RATE` | Optional: Sentry trace sampling (0.0-1.0) |
+| `SERVER_PORT`             | Optional: health server port (default `8080`) |
+| `GEMINI_API_KEY`          | Optional: enables Gemini/OpenAI-compatible LLM features |
+| `LLM_MODEL`               | Optional: overrides the default LLM model |
+| `LLM_BASE_URL`            | Optional: overrides the default LLM base URL |
 
 See `src/utils/statics.rs` for constant definitions.
