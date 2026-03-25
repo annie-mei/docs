@@ -9,14 +9,12 @@ Get Annie Mei running in your Discord server in just a few minutes.
 
 <Steps>
   <Step title="Add the Bot to Discord">
-    To add Annie Mei to your Discord server, you'll need to create a bot application in the [Discord Developer Portal](https://discord.com/developers/applications).
-    
-    1. Create a new application
-    2. Go to the "Bot" section and create a bot
-    3. Under "OAuth2" > "URL Generator", select the `bot` and `applications.commands` scopes
-    4. Select the required bot permissions (at minimum: Send Messages, Embed Links)
-    5. Copy the generated URL and open it in your browser to invite the bot to your server
-    
+    The quickest way to start is to invite the hosted Annie Mei bot directly:
+
+    [Add Annie Mei to your Discord server](https://discord.com/oauth2/authorize?client_id=962106280430932079&permissions=388160&scope=bot)
+
+    Open the link, choose your Discord server, and authorize the bot.
+     
     <Note>
       You'll need "Manage Server" permissions on the Discord server to add bots.
     </Note>
@@ -31,18 +29,18 @@ Get Annie Mei running in your Discord server in just a few minutes.
   <Step title="Try Your First Command">
     Let's test the bot with a simple health check:
     
-    ```
+    ```text
     /ping
     ```
     
-    The bot should respond with its latency, confirming it's working correctly.
+    The bot should respond with a short greeting, confirming it's online and can answer slash commands.
   </Step>
   
   <Step title="Look Up an Anime">
     Now try searching for an anime:
     
-    ```
-    /anime Attack on Titan
+    ```text
+    /anime search:Attack on Titan
     ```
     
     Annie Mei will return detailed information from AniList, including the title, description, rating, episode count, and more.
@@ -55,40 +53,40 @@ Get Annie Mei running in your Discord server in just a few minutes.
   <Step title="Search for Manga">
     Search for manga information:
     
-    ```
-    /manga Chainsaw Man
+    ```text
+    /manga search:Chainsaw Man
     ```
     
     You can also search using Japanese characters:
     
-    ```
-    /manga きめつのやいば
+    ```text
+    /manga search:きめつのやいば
     ```
   </Step>
   
   <Step title="Find Theme Songs">
     Look up opening and ending theme songs for an anime with Spotify links:
     
-    ```
-    /songs Demon Slayer
+    ```text
+    /songs search:Demon Slayer
     ```
     
     <Warning>
       For anime with numeric titles, wrap the title in quotes to ensure proper parsing:
-      ```
-      /songs "86"
+      ```text
+      /songs search:"86"
       ```
     </Warning>
   </Step>
   
   <Step title="Link Your AniList Account (Optional)">
-    To display your personal scores when looking up anime and manga, link your AniList account:
+    To include your AniList watch or read status in server lookups, register your AniList username:
     
-    ```
-    /register
+    ```text
+    /register anilist:YourUsername
     ```
     
-    Follow the bot's instructions to authenticate with AniList. Once linked, your scores will automatically appear when you use `/anime` or `/manga` commands.
+    Annie Mei looks up that public AniList username and stores the matching AniList ID for your Discord account. After that, your status and score can appear in `/anime` and `/manga` results for your server.
   </Step>
 </Steps>
 
@@ -99,19 +97,19 @@ Here's a quick reference of all available commands:
 | Command | Description |
 |---------|-------------|
 | `/help` | Shows all available commands and usage information |
-| `/ping` | Bot health check - shows latency |
-| `/register` | Link your AniList account to display your scores |
-| `/anime <search>` | Look up anime by name or AniList ID |
-| `/manga <search>` | Look up manga by name or AniList ID |
-| `/songs <search>` | Find opening and ending theme songs for an anime |
+| `/ping` | Quick greeting to confirm the bot is online |
+| `/register anilist:<username>` | Register your AniList username for server member data |
+| `/anime search:<term or id>` | Look up anime by name or AniList ID |
+| `/manga search:<term or id>` | Look up manga by name or AniList ID |
+| `/songs search:<term or id>` | Find opening and ending theme songs for an anime |
 
 ## Search Tips
 
 - **Use AniList IDs** for exact matches when you know the specific ID
 - **Japanese kana is fully supported** - search in Japanese if you prefer
-- **Wrap numeric titles in quotes** to prevent parsing issues (e.g., `/songs "86"`)
+- **Wrap numeric titles in quotes** to prevent parsing issues (e.g., `/songs search:"86"`)
 - **Partial matches work** - you don't need to type the full title
 
 ## Next Steps
 
-Interested in self-hosting Annie Mei or contributing to development? Check out the [Installation Guide](/installation) for detailed setup instructions.
+If you want to self-host Annie Mei or contribute to development, check out the [Installation Guide](/installation).

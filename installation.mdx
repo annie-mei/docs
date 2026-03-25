@@ -1,17 +1,36 @@
 ---
 title: Installation
-description: Self-host Annie Mei by building from source with Rust, PostgreSQL, and Redis.
+description: Use the hosted Annie Mei bot or self-host it with Rust, PostgreSQL, and Redis.
 ---
 
 # Installation Guide
 
-This guide covers how to self-host Annie Mei by building from source.
+This guide covers both ways to get Annie Mei running:
+
+- Use the hosted bot in your Discord server
+- Self-host Annie Mei from source
+
+## Option 1: use the hosted bot
+
+If you want the fastest setup, invite the hosted Annie Mei bot to your Discord server:
+
+[Add Annie Mei to your Discord server](https://discord.com/oauth2/authorize?client_id=962106280430932079&permissions=388160&scope=bot)
+
+After you add it, head to the [Quickstart Guide](/quickstart) to try the core slash commands.
+
+<Note>
+  You'll need permission to manage the Discord server before you can add bots.
+</Note>
+
+## Option 2: self-host Annie Mei
+
+Use this path if you want to run your own instance, change the code, or develop new features.
 
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
 
-- **Rust 1.93 or higher** - Install from [rustup.rs](https://rustup.rs/)
+- **Rust 1.94 or higher** - Install from [rustup.rs](https://rustup.rs/)
 - **PostgreSQL** - Any recent version (the bot uses Diesel ORM)
 - **Redis** - For caching API responses
 - **Git** - To clone the repository
@@ -30,8 +49,9 @@ Annie Mei requires several environment variables to function. You'll need accoun
 ### Required Services
 
 1. **Discord Bot Token** - Create a bot at the [Discord Developer Portal](https://discord.com/developers/applications)
-2. **Sentry Account** (optional but recommended) - For error tracking at [sentry.io](https://sentry.io/)
+2. **Sentry DSN** - The current app startup expects `SENTRY_DSN` to be set
 3. **Spotify API Credentials** - Register an application at [Spotify for Developers](https://developer.spotify.com/)
+4. **MyAnimeList API Client ID** - Register an application at [MyAnimeList API Config](https://myanimelist.net/apiconfig)
 
 ### Environment Variables
 
@@ -48,15 +68,24 @@ DATABASE_URL=postgresql://username:password@localhost/annie_mei
 REDIS_URL=redis://localhost:6379
 
 # Spotify API
-RSPOTIFY_CLIENT_ID=your_spotify_client_id
-RSPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
 
-# Error Tracking (optional)
+# MyAnimeList API
+MAL_CLIENT_ID=your_mal_client_id
+
+# Error Tracking
 SENTRY_DSN=your_sentry_dsn
 SENTRY_TRACES_SAMPLE_RATE=0.1
 
 # Environment
 ENV=development
+
+# Privacy
+USERID_HASH_SALT=generate_a_random_secret_value
+
+# Optional health server port
+SERVER_PORT=8080
 ```
 
 <Warning>
@@ -70,32 +99,20 @@ ENV=development
     Clone the Annie Mei repository from GitHub:
     
     ```bash
-    git clone https://github.com/yourusername/annie-mei.git
+    git clone https://github.com/annie-mei/annie-mei.git
     cd annie-mei
     ```
   </Step>
   
-  <Step title="Install Diesel CLI">
-    Install the Diesel CLI tool for database migrations:
+  <Step title="Create the Database">
+    Create the PostgreSQL database:
     
     ```bash
-    cargo install diesel_cli --no-default-features --features postgres
-    ```
-  </Step>
-  
-  <Step title="Setup the Database">
-    Create the PostgreSQL database and run migrations:
-    
-    ```bash
-    # Create the database
     createdb annie_mei
-    
-    # Run migrations
-    diesel migration run
     ```
     
     <Note>
-      If you get a connection error, verify your `DATABASE_URL` in the `.env` file is correct.
+      Annie Mei runs its embedded Diesel migrations automatically on startup. You only need Diesel CLI if you want to create or run migrations manually during development.
     </Note>
   </Step>
   
@@ -132,11 +149,11 @@ ENV=development
   <Step title="Verify Installation">
     Test the bot by running a command in Discord:
     
-    ```
+    ```text
     /ping
     ```
     
-    If you receive a response with latency information, your installation is successful!
+    If you receive a greeting from Annie Mei, your installation is successful.
   </Step>
 </Steps>
 
@@ -178,9 +195,10 @@ Executes the test suite.
 
 ### Database Migrations
 
-To create a new migration:
+To create a new migration during development:
 
 ```bash
+cargo install diesel_cli --no-default-features --features postgres
 diesel migration generate migration_name
 ```
 
