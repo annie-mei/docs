@@ -3,7 +3,7 @@ title: Commands Overview
 description: Complete guide to Annie Mei's Discord slash commands
 ---
 
-Annie Mei provides slash commands for looking up anime and manga information from AniList, finding theme songs, and linking your AniList profile to show guild members' scores.
+Annie Mei provides slash commands for looking up anime and manga information from AniList, finding theme songs, and registering AniList usernames so server member data can appear in media results.
 
 ## Available Commands
 
@@ -18,7 +18,7 @@ Annie Mei provides slash commands for looking up anime and manga information fro
     Find opening and ending theme songs with Spotify links
   </Card>
   <Card title="/register" icon="user-plus" href="/commands/register">
-    Link your AniList account to your Discord profile
+    Register your AniList username to your Discord profile
   </Card>
   <Card title="/help" icon="circle-question" href="/commands/help">
     View command reference and usage tips
@@ -68,14 +68,14 @@ All media lookup commands (`/anime`, `/manga`, `/songs`) accept flexible search 
 
 ## Guild Features
 
-When you use `/anime` or `/manga` commands in a Discord server where members have registered their AniList accounts:
+When you use `/anime` or `/manga` in a Discord server where members have registered their AniList usernames:
 
 - The bot shows which guild members are watching/reading the media
 - Displays each member's score and status (watching, completed, etc.)
-- Only visible to users who have linked their AniList profile with `/register`
+- Uses AniList's 100-point score format when a score is available
 
 <Note>
-  Guild member data only appears if multiple people in your server have registered their AniList accounts.
+  Guild member data can appear as soon as one registered member in your server has that title on AniList. Anyone who can see the message can see the embed output.
 </Note>
 
 ## Getting Started
@@ -96,9 +96,9 @@ When you use `/anime` or `/manga` commands in a Discord server where members hav
 
 All commands defer the initial response to prevent Discord timeouts. Expect:
 
-- **Fast lookups** (by AniList ID): ~1-2 seconds
-- **Search queries**: 2-4 seconds depending on AniList API response
-- **Theme songs**: 3-5 seconds (fetches from MyAnimeList and Spotify)
+- **AniList ID lookups** to be the fastest path when you know the exact media ID
+- **Title searches** to take longer because Annie Mei needs to resolve the best AniList match first
+- **Theme song lookups** to take the longest because Annie Mei queries AniList, MyAnimeList, and Spotify
 
 <Warning>
   If a command takes longer than 15 seconds, the bot may have encountered an API issue. Try again or check `/ping` to verify the bot is online.

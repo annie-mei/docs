@@ -5,7 +5,7 @@ description: Fetch detailed anime information from AniList
 
 ## Overview
 
-The `/anime` command fetches comprehensive anime details from AniList, including metadata, streaming links, and guild member scores.
+The `/anime` command fetches comprehensive anime details from AniList, including metadata, available streaming links, and registered server member data.
 
 ## Command Syntax
 
@@ -79,17 +79,21 @@ The bot returns a rich embed with the following information:
 
 <ResponseField name="Links">
   - **AniList URL**: Direct link to the AniList page
-  - **Streaming services**: Crunchyroll, Funimation, etc. (if available)
-  - **Trailer**: YouTube embed (if available)
+  - **Streaming services**: Currently formatted for Crunchyroll, Netflix, and HBO links when AniList exposes them
+  - **Trailer**: YouTube link when AniList provides trailer data
 </ResponseField>
 
 <ResponseField name="Guild Data" optional>
   If guild members have registered their AniList accounts:
   - Member names and their watch status (Watching, Completed, Dropped, etc.)
-  - Individual scores (out of 10)
+  - Individual AniList scores (out of 100)
 </ResponseField>
 
 ## Search Tips
+
+<Warning>
+  Adult titles are only shown in NSFW channels. Annie Mei also blocks adult results in DMs.
+</Warning>
 
 <Tip>
   **AniList IDs are the most reliable way to search.** Find the ID in the URL:
@@ -99,7 +103,7 @@ The bot returns a rich embed with the following information:
 
 <AccordionGroup>
   <Accordion title="No results found?">
-    If the bot returns `Could not find anime`, try:
+    If the bot returns `No such anime`, try:
     - Verifying the spelling
     - Using the romaji title instead of English
     - Searching with fewer words ("Jujutsu Kaisen" instead of "Jujutsu Kaisen Season 2")

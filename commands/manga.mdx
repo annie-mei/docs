@@ -5,7 +5,7 @@ description: Look up manga details from AniList
 
 ## Overview
 
-The `/manga` command fetches comprehensive manga information from AniList, including metadata, author details, and guild member reading lists.
+The `/manga` command fetches comprehensive manga information from AniList, including metadata, staff details, and registered server member reading data.
 
 ## Command Syntax
 
@@ -79,16 +79,20 @@ The bot returns a rich embed with the following information:
 
 <ResponseField name="Links">
   - **AniList URL**: Direct link to the AniList page
-  - **External services**: MangaDex, MangaPlus, etc. (if available)
+  - **MyAnimeList link**: Included in the description when AniList provides an `idMal`
 </ResponseField>
 
 <ResponseField name="Guild Data" optional>
   If guild members have registered their AniList accounts:
   - Member names and their reading status (Reading, Completed, Dropped, etc.)
-  - Individual scores (out of 10)
+  - Individual AniList scores (out of 100)
 </ResponseField>
 
 ## Search Tips
+
+<Warning>
+  Adult titles are only shown in NSFW channels. Annie Mei also blocks adult results in DMs.
+</Warning>
 
 <Tip>
   **AniList IDs guarantee exact matches.** Find the ID in the URL:
@@ -98,7 +102,7 @@ The bot returns a rich embed with the following information:
 
 <AccordionGroup>
   <Accordion title="No results found?">
-    If the bot returns `Could not find manga`, try:
+    If the bot returns `No such manga`, try:
     - Verifying the spelling
     - Using the romaji title instead of English
     - Searching for the Japanese title in kana/kanji
@@ -128,7 +132,7 @@ The bot returns a rich embed with the following information:
 |---------|--------|--------|
 | **Source** | AniList anime database | AniList manga database |
 | **Metadata** | Episodes, duration, season, studios | Chapters, volumes, publication dates, staff |
-| **Links** | Streaming services, trailers | Reading platforms |
+| **Links** | Streaming links, trailer, AniList/MAL links | AniList link and MAL link when available |
 | **Guild data** | Watch status & scores | Reading status & scores |
 
 ## Source Code Reference

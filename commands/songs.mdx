@@ -5,7 +5,7 @@ description: Find anime opening and ending theme songs with Spotify links
 
 ## Overview
 
-The `/songs` command fetches opening (OP) and ending (ED) theme songs for an anime from MyAnimeList, with Spotify preview links when available.
+The `/songs` command fetches opening (OP) and ending (ED) theme songs for an anime from MyAnimeList, with Spotify track links when available.
 
 ## Command Syntax
 
@@ -82,7 +82,7 @@ The bot returns an embed with:
     Using the AniList data, the bot queries MyAnimeList for theme song listings.
   </Step>
   <Step title="Match with Spotify">
-    For each song, the bot searches Spotify to find preview links.
+    For each song, the bot searches Spotify to find a track link.
   </Step>
   <Step title="Return embed">
     All songs are formatted into a Discord embed with clickable links.
@@ -92,19 +92,27 @@ The bot returns an embed with:
 ## Search Tips
 
 <Warning>
-  The `/songs` command only works for **anime**, not manga. If you search for a manga title, the bot will return "Could not find anime."
+  The `/songs` command only works for **anime**, not manga. If the lookup does not resolve to an anime, the bot returns `No such anime`.
 </Warning>
 
 <AccordionGroup>
   <Accordion title="No results found?">
-    If the bot returns `Could not find anime`, try:
+    If the bot returns `No such anime`, try:
     - Verifying you're searching for an anime, not a manga
     - Using the anime's AniList ID instead of a search term
     - Using the exact romaji title from AniList
   </Accordion>
 
+  <Accordion title="Anime found, but no song data appears">
+    If Annie Mei finds the anime on AniList but it does not have a MyAnimeList ID, the bot returns:
+
+    ```text
+    Anime not found on MAL. Song data is only available for anime listed on MyAnimeList.
+    ```
+  </Accordion>
+
   <Accordion title="Missing Spotify links">
-    Not all songs have Spotify previews. The bot will still show:
+    Not all songs have Spotify matches. The bot will still show:
     - Song title
     - Artist name
     - Episode range
@@ -113,7 +121,7 @@ The bot returns an embed with:
   </Accordion>
 
   <Accordion title="Long-running series">
-    Anime with many openings and endings (like One Piece or Naruto) may have very long response embeds. Discord limits embed field lengths, so some songs may be truncated.
+    Annie Mei shows at most the first 10 openings and the first 10 endings to stay within Discord embed limits.
   </Accordion>
 </AccordionGroup>
 
