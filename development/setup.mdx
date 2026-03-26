@@ -164,7 +164,36 @@ redis-cli ping
 
 ### Development Mode
 
-Run the bot with debug logging:
+The repo includes a [`bacon.toml`](https://dystroy.org/bacon/) configuration. Install bacon once:
+
+```bash
+cargo install bacon
+```
+
+Then run the bot with auto-restart on code changes:
+
+```bash
+bacon
+```
+
+This runs the `dev` job by default, which executes `cargo run` and restarts the bot whenever a source file changes. Other useful jobs:
+
+| Key | Job | What it does |
+|-----|-----|--------------|
+| `c` | `clippy-all` | Run Clippy on all targets |
+| `d` | `dev` | Run and restart the bot on changes |
+| `r` | `run-long` | Same as dev, explicit alias |
+| `p` | `pedantic` | Run Clippy in pedantic mode |
+
+You can also run a specific job directly:
+
+```bash
+bacon clippy-all
+bacon test
+bacon nextest   # requires cargo-nextest
+```
+
+To run the bot without bacon:
 
 ```bash
 cargo run
