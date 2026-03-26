@@ -8,15 +8,15 @@
     "dark": "/mei.jpg"
   },
   "colors": {
-    "primary": "#c026d3",
-    "light": "#e879f9",
-    "dark": "#86198f"
+    "primary": "#eb6f92",
+    "light": "#c4a7e7",
+    "dark": "#b4637a"
   },
   "background": {
     "decoration": "gradient",
     "color": {
-      "light": "#fdf4ff",
-      "dark": "#150a1a"
+      "light": "#faf4ed",
+      "dark": "#191724"
     }
   },
   "fonts": {
@@ -28,8 +28,8 @@
   },
   "styling": {
     "codeblocks": {
-      "light": "github-light",
-      "dark": "tokyo-night"
+      "light": "rose-pine-dawn",
+      "dark": "rose-pine"
     },
     "eyebrows": "breadcrumbs"
   },
