@@ -1,55 +1,125 @@
 ---
 title: Introduction
 description: Annie Mei is a Discord bot written in Rust that fetches anime and manga information from AniList, with theme song lookups powered by MyAnimeList and Spotify.
+icon: house
+mode: custom
 ---
 
-# Annie Mei
+<div className="flex flex-col items-center text-center py-16 px-4">
+  <img
+    src="/mei.jpg"
+    alt="Annie Mei character"
+    className="w-32 h-32 rounded-full mb-6 shadow-lg"
+  />
+  <h1 className="text-5xl font-bold mb-4">Annie Mei</h1>
+  <p className="text-xl text-[#797593] dark:text-[#908caa] max-w-2xl mb-8">
+    A Discord bot written in Rust that brings anime and manga information from AniList directly to your server, with theme song lookups via Spotify.
+  </p>
+  <div className="flex gap-4 mb-16">
+    <a
+      href="https://discord.com/oauth2/authorize?client_id=962106280430932079&permissions=388160&scope=bot"
+      className="px-6 py-3 bg-[#eb6f92] text-white font-semibold rounded-lg hover:bg-[#b4637a] transition-colors"
+    >
+      Add to Discord
+    </a>
+    <a
+      href="/quickstart"
+      className="px-6 py-3 border border-[#dfdad9] dark:border-[#26233a] font-semibold rounded-lg hover:bg-[#f2e9e1] dark:hover:bg-[#1f1d2e] transition-colors"
+    >
+      Read the docs
+    </a>
+  </div>
+</div>
 
-A high-performance Discord bot written in Rust that brings anime and manga information directly to your Discord server.
+<div className="max-w-5xl mx-auto px-4">
 
-## What is Annie Mei?
+## Key features
 
-Annie Mei is a specialized Discord bot that fetches detailed anime and manga information from AniList's extensive database. It provides theme song lookups with Spotify links, supports full Japanese kana searches, and allows users to link their AniList accounts to share their scores with guild members.
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 mt-6">
+  <div className="flex gap-4">
+    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-rose-100 dark:bg-[#26233a] flex items-center justify-center">
+      <Icon icon="book-open" className="text-[#eb6f92]" size={20} />
+    </div>
+    <div>
+      <h3 className="font-semibold text-base mb-1">AniList integration</h3>
+      <p className="text-sm text-[#9893a5] dark:text-[#6e6a86] m-0">Fetch anime and manga info — titles, descriptions, ratings, episodes, and more.</p>
+    </div>
+  </div>
+  <div className="flex gap-4">
+    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-rose-100 dark:bg-[#26233a] flex items-center justify-center">
+      <Icon icon="music" className="text-[#eb6f92]" size={20} />
+    </div>
+    <div>
+      <h3 className="font-semibold text-base mb-1">Theme song lookup</h3>
+      <p className="text-sm text-[#9893a5] dark:text-[#6e6a86] m-0">Find opening and ending themes for any anime with direct Spotify links.</p>
+    </div>
+  </div>
+  <div className="flex gap-4">
+    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-rose-100 dark:bg-[#26233a] flex items-center justify-center">
+      <Icon icon="link" className="text-[#eb6f92]" size={20} />
+    </div>
+    <div>
+      <h3 className="font-semibold text-base mb-1">AniList account linking</h3>
+      <p className="text-sm text-[#9893a5] dark:text-[#6e6a86] m-0">Register your AniList username so your scores and watch status appear in server lookups.</p>
+    </div>
+  </div>
+  <div className="flex gap-4">
+    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-rose-100 dark:bg-[#26233a] flex items-center justify-center">
+      <Icon icon="languages" className="text-[#eb6f92]" size={20} />
+    </div>
+    <div>
+      <h3 className="font-semibold text-base mb-1">Japanese kana support</h3>
+      <p className="text-sm text-[#9893a5] dark:text-[#6e6a86] m-0">Search in Japanese kana or kanji for accurate results by original title.</p>
+    </div>
+  </div>
+</div>
 
-Built with Rust using the Serenity framework, Annie Mei delivers fast, reliable responses through Discord's slash command interface.
+<div className="mb-8" />
 
-## Key Features
+## Get started
 
 <CardGroup cols={2}>
-  <Card title="AniList Integration" icon="book">
-    Fetch comprehensive anime and manga information directly from AniList, including titles, descriptions, ratings, and more.
+  <Card title="Quickstart" icon="zap" href="/quickstart" horizontal>
+    Add Annie Mei to your Discord server and try your first commands.
   </Card>
-  
-  <Card title="Theme Song Lookup" icon="music">
-    Discover opening and ending theme songs for any anime with direct Spotify links for instant listening.
+  <Card title="Self-host" icon="download" href="/installation" horizontal>
+    Run your own instance with Rust, PostgreSQL, and Redis.
   </Card>
-  
-  <Card title="AniList Account Linking" icon="link">
-    Connect your AniList account to display your personal scores when looking up anime and manga in your server.
+  <Card title="Commands" icon="terminal" href="/commands/overview" horizontal>
+    Browse all slash commands and search tips.
   </Card>
-  
-  <Card title="Japanese Kana Support" icon="language">
-    Search using Japanese kana characters for accurate results when looking up anime and manga by their original titles.
-  </Card>
-  
-  <Card title="High Performance" icon="rocket">
-    Built with Rust for exceptional speed and reliability, using PostgreSQL for data persistence and Redis for caching.
+  <Card title="Development" icon="wrench" href="/development/setup" horizontal>
+    Set up a local dev environment and contribute.
   </Card>
 </CardGroup>
 
-## Get Started
+<div className="border-t border-[#f2e9e1] dark:border-[#26233a] mt-16 mb-8" />
 
-Ready to add Annie Mei to your server? Check out our [Quickstart Guide](/quickstart) to get up and running in minutes.
+<div className="flex flex-wrap justify-center gap-8">
+  <a href="https://www.rust-lang.org/" target="_blank" rel="noopener" title="Rust — a language empowering everyone to build reliable and efficient software" className="flex flex-col items-center gap-2 w-20 no-underline hover:opacity-80 transition-opacity">
+    <img src="https://cdn.simpleicons.org/rust/CE422B" className="w-10 h-10 dark:brightness-150" alt="Rust" />
+    <span className="text-sm font-medium text-center">Rust</span>
+  </a>
+  <a href="https://github.com/serenity-rs/serenity" target="_blank" rel="noopener" title="Serenity — a Rust library for the Discord API" className="flex flex-col items-center gap-2 w-20 no-underline hover:opacity-80 transition-opacity">
+    <img src="https://cdn.simpleicons.org/discord/5865F2" className="w-10 h-10" alt="Discord" />
+    <span className="text-sm font-medium text-center">Serenity</span>
+  </a>
+  <a href="https://www.postgresql.org/docs/" target="_blank" rel="noopener" title="PostgreSQL — the world's most advanced open source relational database" className="flex flex-col items-center gap-2 w-20 no-underline hover:opacity-80 transition-opacity">
+    <img src="https://cdn.simpleicons.org/postgresql/4169E1" className="w-10 h-10 dark:brightness-150" alt="PostgreSQL" />
+    <span className="text-sm font-medium text-center">PostgreSQL</span>
+  </a>
+  <a href="https://redis.io/docs/" target="_blank" rel="noopener" title="Redis — an in-memory data store used as a cache" className="flex flex-col items-center gap-2 w-20 no-underline hover:opacity-80 transition-opacity">
+    <img src="https://cdn.simpleicons.org/redis/FF4438" className="w-10 h-10" alt="Redis" />
+    <span className="text-sm font-medium text-center">Redis</span>
+  </a>
+  <a href="https://tokio.rs/" target="_blank" rel="noopener" title="Tokio — an asynchronous runtime for Rust" className="flex flex-col items-center gap-2 w-20 no-underline hover:opacity-80 transition-opacity">
+    <img src="https://cdn.simpleicons.org/tokio/E6522C" className="w-10 h-10" alt="Tokio" />
+    <span className="text-sm font-medium text-center">Tokio</span>
+  </a>
+  <a href="https://docs.sentry.io/" target="_blank" rel="noopener" title="Sentry — application monitoring and error tracking" className="flex flex-col items-center gap-2 w-20 no-underline hover:opacity-80 transition-opacity">
+    <img src="https://cdn.simpleicons.org/sentry/362D59" className="w-10 h-10 dark:brightness-200" alt="Sentry" />
+    <span className="text-sm font-medium text-center">Sentry</span>
+  </a>
+</div>
 
-Want to self-host? See our [Installation Guide](/installation) for detailed setup instructions.
-
-## Technology Stack
-
-Annie Mei is built with modern, production-ready technologies:
-
-- **Language**: Rust 2024 Edition (1.93+)
-- **Discord Framework**: Serenity 0.12
-- **Database**: PostgreSQL with Diesel ORM
-- **Cache**: Redis
-- **Error Tracking**: Sentry
-- **Async Runtime**: Tokio
+</div>

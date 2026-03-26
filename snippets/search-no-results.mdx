@@ -1,0 +1,11 @@
+export const SearchNoResults = ({ mediaType = "anime", extra }) => (
+  <Accordion title="No results found?">
+    If the bot returns <code>No such {mediaType}</code>, try:
+    <ul>
+      <li>Verifying the spelling</li>
+      <li>Using the romaji title instead of English</li>
+      {extra && <li>{extra}</li>}
+      <li>Using the AniList ID from the website</li>
+    </ul>
+  </Accordion>
+);

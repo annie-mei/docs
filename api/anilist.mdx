@@ -1,6 +1,7 @@
 ---
 title: AniList API
 description: GraphQL integration for fetching anime and manga metadata
+icon: globe
 ---
 
 Annie Mei uses the [AniList GraphQL API](https://anilist.gitbook.io/anilist-apiv2-docs/) to fetch comprehensive anime and manga metadata. All queries are sent to the official AniList endpoint with standard GraphQL request formatting.
@@ -18,7 +19,7 @@ Content-Type: application/json
 Accept: application/json
 ```
 
-Source: [src/utils/requests/anilist.rs:10-24](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/requests/anilist.rs#L10-L24)
+Source: [src/utils/requests/anilist.rs:10-24](https://github.com/annie-mei/annie-mei/blob/main/src/utils/requests/anilist.rs#L10-L24)
 
 ## Anime Queries
 
@@ -83,7 +84,7 @@ query ($id: Int) {
 }
 ```
 
-Source: [src/commands/anime/queries.rs:1-56](https://github.com/InfernapeXavier/annie-mei/blob/main/src/commands/anime/queries.rs#L1-L56)
+Source: [src/commands/anime/queries.rs:1-56](https://github.com/annie-mei/annie-mei/blob/main/src/commands/anime/queries.rs#L1-L56)
 
 ### Search Anime
 
@@ -155,7 +156,7 @@ query ($page: Int, $perPage: Int, $search: String) {
 }
 ```
 
-Source: [src/commands/anime/queries.rs:58-123](https://github.com/InfernapeXavier/annie-mei/blob/main/src/commands/anime/queries.rs#L58-L123)
+Source: [src/commands/anime/queries.rs:58-123](https://github.com/annie-mei/annie-mei/blob/main/src/commands/anime/queries.rs#L58-L123)
 
 ## Manga Queries
 
@@ -224,7 +225,7 @@ query ($id: Int) {
 }
 ```
 
-Source: [src/commands/manga/queries.rs:1-60](https://github.com/InfernapeXavier/annie-mei/blob/main/src/commands/manga/queries.rs#L1-L60)
+Source: [src/commands/manga/queries.rs:1-60](https://github.com/annie-mei/annie-mei/blob/main/src/commands/manga/queries.rs#L1-L60)
 
 ### Search Manga
 
@@ -300,7 +301,7 @@ query ($page: Int, $perPage: Int, $search: String) {
 }
 ```
 
-Source: [src/commands/manga/queries.rs:62-131](https://github.com/InfernapeXavier/annie-mei/blob/main/src/commands/manga/queries.rs#L62-L131)
+Source: [src/commands/manga/queries.rs:62-131](https://github.com/annie-mei/annie-mei/blob/main/src/commands/manga/queries.rs#L62-L131)
 
 ## Response Models
 
@@ -337,7 +338,7 @@ pub struct Anime {
 }
 ```
 
-Source: [src/models/anilist_anime.rs:14-41](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/anilist_anime.rs#L14-L41)
+Source: [src/models/anilist_anime.rs:14-41](https://github.com/annie-mei/annie-mei/blob/main/src/models/anilist_anime.rs#L14-L41)
 
 #### Supporting Structures
 
@@ -365,7 +366,7 @@ pub struct NextAiringEpisode {
 }
 ```
 
-Source: [src/models/anilist_anime.rs:43-72](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/anilist_anime.rs#L43-L72)
+Source: [src/models/anilist_anime.rs:43-72](https://github.com/annie-mei/annie-mei/blob/main/src/models/anilist_anime.rs#L43-L72)
 
 ### Manga Response
 
@@ -398,7 +399,7 @@ pub struct Manga {
 }
 ```
 
-Source: [src/models/anilist_manga.rs:16-42](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/anilist_manga.rs#L16-L42)
+Source: [src/models/anilist_manga.rs:16-42](https://github.com/annie-mei/annie-mei/blob/main/src/models/anilist_manga.rs#L16-L42)
 
 #### Supporting Structures
 
@@ -427,7 +428,7 @@ pub struct StaffName {
 }
 ```
 
-Source: [src/models/anilist_manga.rs:44-71](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/anilist_manga.rs#L44-L71)
+Source: [src/models/anilist_manga.rs:44-71](https://github.com/annie-mei/annie-mei/blob/main/src/models/anilist_manga.rs#L44-L71)
 
 ## Data Transformations
 
@@ -439,7 +440,7 @@ Both `Anime` and `Manga` models implement the `Transformers` trait which provide
 - **Link filtering**: Extracts streaming links for supported platforms (Netflix, Crunchyroll, HBO)
 - **Trailer formatting**: Converts YouTube trailer IDs to full URLs
 
-Source: [src/models/anilist_anime.rs:74-306](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/anilist_anime.rs#L74-L306) and [src/models/anilist_manga.rs:73-305](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/anilist_manga.rs#L73-L305)
+Source: [src/models/anilist_anime.rs:74-306](https://github.com/annie-mei/annie-mei/blob/main/src/models/anilist_anime.rs#L74-L306) and [src/models/anilist_manga.rs:73-305](https://github.com/annie-mei/annie-mei/blob/main/src/models/anilist_manga.rs#L73-L305)
 
 ## Rate Limiting
 

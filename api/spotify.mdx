@@ -1,6 +1,7 @@
 ---
 title: Spotify API
 description: Integration for finding and linking anime theme songs on Spotify
+icon: headphones
 ---
 
 Annie Mei uses the [Spotify Web API](https://developer.spotify.com/documentation/web-api) to search for anime opening and ending theme songs and provide direct links to them. This enhances the theme song information from MyAnimeList with playable music links.
@@ -10,8 +11,8 @@ Annie Mei uses the [Spotify Web API](https://developer.spotify.com/documentation
 The bot uses the **Client Credentials Flow** for server-to-server authentication. This requires:
 
 ```rust
-RSPOTIFY_CLIENT_ID
-RSPOTIFY_CLIENT_SECRET
+SPOTIFY_CLIENT_ID
+SPOTIFY_CLIENT_SECRET
 ```
 
 Register your application at the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) to obtain these credentials.
@@ -33,7 +34,7 @@ fn get_spotify_client() -> ClientCredsSpotify {
 }
 ```
 
-Source: [src/utils/spotify.rs:15-27](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L15-L27)
+Source: [src/utils/spotify.rs:15-27](https://github.com/annie-mei/annie-mei/blob/main/src/utils/spotify.rs#L15-L27)
 
 ## Search Functionality
 
@@ -47,7 +48,7 @@ pub fn get_song_url(
 ) -> Option<String>
 ```
 
-Source: [src/utils/spotify.rs:29-33](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L29-L33)
+Source: [src/utils/spotify.rs:29-33](https://github.com/annie-mei/annie-mei/blob/main/src/utils/spotify.rs#L29-L33)
 
 ### Search Strategy
 
@@ -69,7 +70,7 @@ match romaji_search {
 }
 ```
 
-Source: [src/utils/spotify.rs:49-82](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L49-L82)
+Source: [src/utils/spotify.rs:49-82](https://github.com/annie-mei/annie-mei/blob/main/src/utils/spotify.rs#L49-L82)
 
 ## Search Request
 
@@ -93,7 +94,7 @@ fn send_search_request(
 }
 ```
 
-Source: [src/utils/spotify.rs:89-103](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L89-L103)
+Source: [src/utils/spotify.rs:89-103](https://github.com/annie-mei/annie-mei/blob/main/src/utils/spotify.rs#L89-L103)
 
 ### Search Parameters
 
@@ -120,7 +121,7 @@ fn get_url_from_search_result(search_result: SearchResult) -> Option<String> {
 }
 ```
 
-Source: [src/utils/spotify.rs:105-118](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L105-L118)
+Source: [src/utils/spotify.rs:105-118](https://github.com/annie-mei/annie-mei/blob/main/src/utils/spotify.rs#L105-L118)
 
 ## Redis Caching
 
@@ -141,7 +142,7 @@ match check_cache(&cache_key) {
 };
 ```
 
-Source: [src/utils/spotify.rs:35-47](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L35-L47)
+Source: [src/utils/spotify.rs:35-47](https://github.com/annie-mei/annie-mei/blob/main/src/utils/spotify.rs#L35-L47)
 
 ### Cache Strategy
 
@@ -155,7 +156,7 @@ try_to_cache_response(&cache_key, &url);  // Cache successful result
 try_to_cache_response(&cache_key, "None");  // Cache negative result
 ```
 
-Source: [src/utils/spotify.rs:54](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L54) and [src/utils/spotify.rs:85](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L85)
+Source: [src/utils/spotify.rs:54](https://github.com/annie-mei/annie-mei/blob/main/src/utils/spotify.rs#L54) and [src/utils/spotify.rs:85](https://github.com/annie-mei/annie-mei/blob/main/src/utils/spotify.rs#L85)
 
 ## Usage Example
 
@@ -182,7 +183,7 @@ match spotify_url {
 }
 ```
 
-Source: [src/models/mal_response.rs:99-108](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L99-L108)
+Source: [src/models/mal_response.rs:99-108](https://github.com/annie-mei/annie-mei/blob/main/src/models/mal_response.rs#L99-L108)
 
 ## Error Handling
 
@@ -202,7 +203,7 @@ match romaji_search {
 }
 ```
 
-Source: [src/utils/spotify.rs:83-84](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L83-L84)
+Source: [src/utils/spotify.rs:83-84](https://github.com/annie-mei/annie-mei/blob/main/src/utils/spotify.rs#L83-L84)
 
 ## Rate Limiting
 
@@ -220,7 +221,7 @@ The Spotify integration uses the `rspotify` crate:
 
 ```toml
 [dependencies]
-rspotify = { version = "0.12", default-features = false, features = ["client-reqwest"] }
+rspotify = { version = "0.15.3", default-features = false, features = ["client-ureq", "ureq-rustls-tls"] }
 ```
 
 Key imports:
@@ -235,7 +236,7 @@ use rspotify::{
 };
 ```
 
-Source: [src/utils/spotify.rs:1-10](https://github.com/InfernapeXavier/annie-mei/blob/main/src/utils/spotify.rs#L1-L10)
+Source: [src/utils/spotify.rs:1-10](https://github.com/annie-mei/annie-mei/blob/main/src/utils/spotify.rs#L1-L10)
 
 ## Logging
 

@@ -1,52 +1,54 @@
 ---
 title: Infrastructure
 description: Set up the infrastructure for deploying Annie Mei to production
+icon: server
 ---
 
 ## Overview
 
-Annie Mei's production infrastructure uses serverless and managed services for scalability and reliability:
+Annie Mei only depends on a few infrastructure categories:
 
-- **Database**: Neon (Serverless PostgreSQL)
-- **Cache**: Upstash (Serverless Redis)
-- **Secrets**: Doppler (Secrets Management)
-- **Monitoring**: Sentry (Error Tracking)
-- **Compute**: Oracle Cloud (ARM64 VM)
+- **PostgreSQL** for persistent storage
+- **Redis** for caching
+- **Secret injection** for environment variables
+- **Sentry** for error tracking
+- **A Linux host or container platform** to run the bot
 
-## Database: Neon PostgreSQL
+The current production deployment uses Neon, Upstash, Doppler, Sentry, and Oracle Cloud, but those are examples rather than requirements. You can use any compatible PostgreSQL, Redis, secrets workflow, and compute provider.
 
-### Why Neon?
+## Database: PostgreSQL
 
-- Serverless PostgreSQL with automatic scaling
-- Built-in connection pooling
-- Generous free tier for development
-- Instant branching for testing
+### What Annie Mei needs
+
+- A PostgreSQL connection string in `DATABASE_URL`
+- A database user with permission to run migrations on startup
+- TLS enabled if your database is remote
+- Optional connection pooling if your provider offers it
 
 ### Setup
 
-1. **Create a Neon account** at [neon.tech](https://neon.tech)
+1. **Provision a PostgreSQL database** with version 17 or later.
 
-2. **Create a new project**:
-   - Select your preferred region
-   - PostgreSQL version: 15 or later
+2. **Create a database and user** for Annie Mei.
 
 3. **Get the connection string**:
-   - Go to your project dashboard
-   - Copy the connection string (format: `postgres://user:password@host/db?sslmode=require`)
-   - Set as `DATABASE_URL` environment variable
+   - Format: `postgres://user:password@host:5432/database`
+   - Add `?sslmode=require` if your provider requires TLS
+   - Set it as `DATABASE_URL`
 
-4. **Run migrations**:
-   ```bash
-   diesel migration run
-   ```
+4. **Start the bot**. Annie Mei runs embedded Diesel migrations automatically on startup.
 
 ### Connection Pooling
 
-Neon automatically provides connection pooling. Use the pooled connection string for the bot:
+If your provider offers a pooled connection string, prefer that in production:
 
 ```bash
-DATABASE_URL=postgres://user:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL=postgres://user:password@db.example.com/annie_mei?sslmode=require
 ```
+
+<Note>
+  The current production deployment uses Neon, so you may still see Neon-specific examples in workflow or operational notes. They are references, not requirements.
+</Note>
 
 ### Schema
 
@@ -56,34 +58,26 @@ Annie Mei uses Diesel ORM for database migrations. The schema is defined in:
 
 The database stores:
 - User AniList account registrations
-- User preferences and settings
+- Linked AniList usernames and AniList user IDs for registered Discord accounts
 
-### Backups
+## Cache: Redis
 
-Neon automatically backs up your data. Configure backup retention in the Neon dashboard.
+### What Annie Mei needs
 
-## Cache: Upstash Redis
-
-### Why Upstash?
-
-- Serverless Redis with per-request pricing
-- Global edge caching
-- TLS support built-in
-- Generous free tier
+- A Redis connection string in `REDIS_URL`
+- Standard Redis or TLS Redis support
+- Enough memory for cached API responses
 
 ### Setup
 
-1. **Create an Upstash account** at [upstash.com](https://upstash.com)
+1. **Provision a Redis instance** close to where the bot runs.
 
-2. **Create a Redis database**:
-   - Choose a region close to your compute
-   - Select "Global" for worldwide edge caching (optional)
-   - Enable TLS
+2. **Get the connection string**:
+   - Standard Redis: `redis://host:6379`
+   - TLS Redis: `rediss://default:password@host:port`
+   - Set it as `REDIS_URL`
 
-3. **Get the connection string**:
-   - Copy the "Redis URL" from the database dashboard
-   - Format: `rediss://default:password@host:port`
-   - Set as `REDIS_URL` environment variable
+3. **Enable TLS** if your provider supports or requires it.
 
 ### Caching Strategy
 
@@ -92,51 +86,44 @@ Annie Mei caches:
 - MyAnimeList theme song data
 - Spotify track lookups
 
-Cache TTLs are configured per API endpoint to balance freshness and API rate limits.
+The current implementation uses one fixed cache TTL of 5 hours for cached responses.
 
 ### Monitoring
 
-Monitor Redis usage in the Upstash dashboard:
+Monitor Redis usage through whatever tooling your host provides:
 - Request count
-- Data size
+- Memory usage
 - Cache hit rate
 
-## Secrets: Doppler
+## Secrets management
 
-### Why Doppler?
+### What Annie Mei needs
 
-- Centralized secrets management
-- Environment-specific configurations
-- Automatic syncing to deployment targets
-- Audit logs for secret access
+- All required environment variables available at process start
+- A way to keep secrets out of git
+- A repeatable way to inject secrets into production and CI
 
 ### Setup
 
-1. **Create a Doppler account** at [doppler.com](https://www.doppler.com/)
+You can provide secrets in several ways:
 
-2. **Install the Doppler CLI**:
-   ```bash
-   curl -Ls https://cli.doppler.com/install.sh | sh
-   ```
+- A local `.env` file for development
+- A systemd `EnvironmentFile`
+- Docker or Kubernetes secrets
+- A hosted secrets manager such as Doppler, 1Password, AWS Secrets Manager, or similar
 
-3. **Login and create a project**:
-   ```bash
-   doppler login
-   doppler projects create annie-mei
-   ```
+If you use Doppler, a simple workflow looks like this:
 
-4. **Configure environments**:
-   - Create `dev`, `staging`, and `production` environments
-   - Set all [required environment variables](/deployment/environment-variables)
-
-5. **Run the bot with Doppler**:
-   ```bash
-   doppler run -- ./annie-mei
-   ```
+```bash
+curl -Ls https://cli.doppler.com/install.sh | sh
+doppler login
+doppler setup
+doppler run -- ./annie-mei
+```
 
 ### CI/CD Integration
 
-Doppler can sync secrets to GitHub Actions:
+Doppler can also sync secrets to GitHub Actions if that matches your workflow:
 
 1. Generate a service token in Doppler
 2. Add as `DOPPLER_TOKEN` in GitHub repository secrets
@@ -198,15 +185,17 @@ Set these GitHub secrets:
 - `SENTRY_ORG`: Your Sentry organization slug
 - `SENTRY_PROJECT`: Your project slug
 
-## Compute: Oracle Cloud
+## Compute / VM
 
-### Deployment Target
+### Deployment target
 
-Annie Mei is deployed to Oracle Cloud ARM64 VMs. The deployment is automated via GitHub Actions.
+Annie Mei can run on any Linux host that can execute the release binary and reach Discord, PostgreSQL, Redis, and the external APIs.
+
+The current production deployment uses Oracle Cloud ARM64 VMs and GitHub Actions, so the examples in this section reflect that setup.
 
 ### Server Setup
 
-1. **Create an ARM64 Ubuntu VM** on Oracle Cloud
+1. **Create a Linux VM or host** with network access to your services.
 
 2. **Install system dependencies**:
    ```bash
@@ -234,8 +223,8 @@ Annie Mei is deployed to Oracle Cloud ARM64 VMs. The deployment is automated via
    Restart=always
    RestartSec=10
    
-   # Load environment variables from Doppler or .env file
-   EnvironmentFile=/opt/annie-mei/.env
+    # Load environment variables from your chosen secrets source
+    EnvironmentFile=/opt/annie-mei/.env
    
    [Install]
    WantedBy=multi-user.target
@@ -253,13 +242,17 @@ Annie Mei is deployed to Oracle Cloud ARM64 VMs. The deployment is automated via
 Annie Mei runs an HTTP server on port 8080 (configurable via `SERVER_PORT`) for health checks:
 
 ```bash
-curl http://localhost:8080/health
+curl http://127.0.0.1:8080/healthz
 ```
 
 Use this endpoint for:
 - Load balancer health checks
 - Monitoring systems
 - Deployment verification
+
+<Note>
+  The built-in health server listens on `127.0.0.1`, not `0.0.0.0`. If you want remote health checks, put a reverse proxy or SSH tunnel in front of it.
+</Note>
 
 ## CI/CD: GitHub Actions
 
@@ -284,7 +277,7 @@ Steps:
 1. **Build ARM64 binary** in Rust Docker container
 2. **Upload debug symbols** to Sentry
 3. **Create GitHub release** with binaries
-4. **Deploy to Oracle Cloud**:
+4. **Deploy to the target host**:
    - Copy binary via SCP
    - Validate binary (executable, dependencies, files)
    - Backup current binary
@@ -296,7 +289,7 @@ Steps:
 
 Set these in your GitHub repository settings:
 
-**Oracle Cloud Deployment:**
+**Current host deployment example:**
 - `ORACLE_HOST`: VM hostname or IP
 - `ORACLE_USER`: SSH username
 - `ORACLE_SSH_KEY`: Private SSH key
@@ -328,47 +321,39 @@ The automated deployment (`.github/workflows/build-release.yml:102-139`):
 8. Verifies the service started successfully
 9. Rolls back if startup fails
 
-## Cost Estimates
+## Cost planning
 
-### Free Tier Eligible
+Your costs depend on the providers you choose, the number of Discord servers using the bot, and how much API traffic you generate.
 
-- **Neon**: Free tier includes 512 MB storage, 3 GB data transfer
-- **Upstash**: Free tier includes 10,000 requests/day
-- **Doppler**: Free tier includes unlimited secrets, 5 users
-- **Sentry**: Free tier includes 5,000 errors/month, 10,000 traces/month
-- **Oracle Cloud**: Always Free tier includes ARM64 compute
+Typical cost buckets are:
 
-### Estimated Monthly Costs
+- PostgreSQL hosting
+- Redis hosting
+- Compute or container runtime
+- Error monitoring
+- Optional secrets management
 
-For a small to medium Discord bot (assuming free tiers are exceeded):
-
-- **Neon**: $0-10 (free tier usually sufficient)
-- **Upstash**: $0-10 (pay per request)
-- **Doppler**: $0 (free tier)
-- **Sentry**: $0-26 (free tier sufficient for small bots)
-- **Oracle Cloud**: $0 (Always Free ARM64 tier)
-
-**Total**: $0-50/month depending on usage
+If you self-host PostgreSQL or Redis, those costs shift from managed-service pricing to your own infrastructure and maintenance time.
 
 ## Security Best Practices
 
 ### Network Security
 
-1. **Restrict database access**: Configure Neon to allow connections only from your VM's IP
-2. **Use TLS**: Always use `sslmode=require` for PostgreSQL and `rediss://` for Redis
-3. **Firewall**: Configure Oracle Cloud security lists to allow only necessary ports (22 for SSH, 8080 for health checks)
+1. **Restrict database access** to the bot host or private network where possible
+2. **Use TLS** for PostgreSQL and Redis whenever your provider supports it
+3. **Lock down inbound ports** so only required management and health-check access is exposed
 
 ### Secrets Management
 
 1. **Never commit secrets** to git
 2. **Rotate credentials** regularly
-3. **Use Doppler** for centralized secret management
+3. **Use a secrets manager** if you need centralized secret management
 4. **Limit secret access** to only necessary users and services
 
 ### Monitoring
 
 1. **Enable Sentry alerts** for error spikes
-2. **Monitor resource usage** in Neon and Upstash dashboards
+2. **Monitor database and Redis resource usage** in your provider dashboards
 3. **Set up uptime monitoring** for the HTTP health check endpoint
 4. **Review Sentry issues** regularly
 
@@ -377,4 +362,4 @@ For a small to medium Discord bot (assuming free tiers are exceeded):
 - Review [Configuration](/deployment/configuration) for environment setup
 - See [Environment Variables](/deployment/environment-variables) for complete variable reference
 - Set up monitoring alerts in Sentry
-- Configure Doppler for automated secret syncing
+- Set up your preferred secret injection workflow for deployments

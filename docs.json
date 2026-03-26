@@ -1,16 +1,46 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "name": "Annie Mei",
-  "theme": "aspen",
+  "theme": "maple",
+  "favicon": "/mei.jpg",
+  "logo": {
+    "light": "/mei.jpg",
+    "dark": "/mei.jpg"
+  },
   "colors": {
-    "primary": "#e4a015",
-    "light": "#f5b84a",
-    "dark": "#b8761a"
+    "primary": "#eb6f92",
+    "light": "#c4a7e7",
+    "dark": "#b4637a"
+  },
+  "background": {
+    "decoration": "gradient",
+    "color": {
+      "light": "#faf4ed",
+      "dark": "#191724"
+    }
+  },
+  "fonts": {
+    "heading": { "family": "Inter Display", "weight": 700 },
+    "body": { "family": "Inter", "weight": 400 }
+  },
+  "icons": {
+    "library": "lucide"
+  },
+  "styling": {
+    "codeblocks": {
+      "light": "rose-pine-dawn",
+      "dark": "rose-pine"
+    },
+    "eyebrows": "breadcrumbs"
   },
   "navbar": {
+    "links": [
+      { "type": "github", "href": "https://github.com/annie-mei/annie-mei" }
+    ],
     "primary": {
-      "type": "github",
-      "href": "https://github.com/annie-mei/annie-mei"
+      "type": "button",
+      "label": "Add to Discord",
+      "href": "https://discord.com/oauth2/authorize?client_id=962106280430932079&permissions=388160&scope=bot"
     }
   },
   "footer": {

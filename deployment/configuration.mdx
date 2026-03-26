@@ -1,6 +1,7 @@
 ---
 title: Configuration
 description: Configure Annie Mei for production deployment
+icon: settings
 ---
 
 ## Overview
@@ -12,8 +13,8 @@ Annie Mei requires configuration through environment variables for Discord integ
 Before configuring Annie Mei, ensure you have:
 
 - A Discord bot token from the [Discord Developer Portal](https://discord.com/developers/applications)
-- PostgreSQL database (recommended: Neon)
-- Redis cache (recommended: Upstash)
+- PostgreSQL database
+- Redis cache
 - Spotify API credentials
 - MyAnimeList API credentials
 - Sentry account for error tracking
@@ -25,12 +26,12 @@ Before configuring Annie Mei, ensure you have:
 Annie Mei reads all configuration from environment variables. You can set them:
 
 1. **Locally**: Using a `.env` file (not committed to git)
-2. **Production**: Using a secrets manager like [Doppler](https://www.doppler.com/)
+2. **Production**: Using your preferred secrets workflow or manager
 3. **CI/CD**: Using GitHub Actions secrets
 
-### Using Doppler (Recommended)
+### Example: using Doppler
 
-Doppler is the recommended secrets management solution for Annie Mei:
+If you already use Doppler, this is one way to inject secrets:
 
 ```bash
 # Install Doppler CLI
@@ -121,17 +122,7 @@ DATABASE_URL=postgres://user:password@host:5432/database?sslmode=require
 
 ### Running Migrations
 
-Before starting the bot, run database migrations:
-
-```bash
-# Install diesel CLI if not already installed
-cargo install diesel_cli --no-default-features --features postgres
-
-# Run migrations
-diesel migration run
-```
-
-The bot will automatically run migrations on startup.
+The bot automatically runs embedded Diesel migrations on startup. You only need Diesel CLI if you want to run or generate migrations manually during development.
 
 ## Cache Setup
 
@@ -143,7 +134,7 @@ Set the `REDIS_URL` with your Redis connection string:
 REDIS_URL=redis://default:password@host:port
 ```
 
-For Upstash Redis with TLS:
+For Redis with TLS:
 
 ```bash
 REDIS_URL=rediss://default:password@host:port
@@ -178,13 +169,13 @@ To look up a user's hashed ID in Sentry logs:
 
 ### HTTP Health Check Server
 
-Annie Mei runs an HTTP health check server on port 8080 (configurable via `SERVER_PORT`):
+Annie Mei runs an HTTP health check server on port 8080 by default (configurable via `SERVER_PORT`):
 
 ```bash
 SERVER_PORT=8080  # Default port
 ```
 
-The server provides a `/healthz` endpoint that monitors the health of Redis and PostgreSQL connections:
+The server provides a `/healthz` endpoint that monitors the health of Redis and PostgreSQL connections. It binds to `127.0.0.1`, so expose it through your own reverse proxy or local monitoring if you need external checks.
 
 **Endpoint**: `GET /healthz`
 
@@ -192,7 +183,7 @@ The server provides a `/healthz` endpoint that monitors the health of Redis and 
 ```json
 {
   "status": "healthy",
-  "version": "2.5.3",
+  "version": "2.8.1",
   "services": {
     "redis": "up",
     "database": "up"
@@ -216,14 +207,14 @@ Defined in: `src/server.rs:14-61`
 Before deploying, validate your configuration:
 
 ```bash
-# Check that all required environment variables are set
-./annie-mei --help
-
-# Test database connection
-diesel migration run
-
-# Run the bot in development mode
+# Start the bot with your production-style environment
 RUST_LOG=debug ./annie-mei
+
+# Check the local health endpoint after startup
+curl http://127.0.0.1:8080/healthz
+
+# Verify the hash helper still works
+./annie-mei hash 123456789012345678
 ```
 
 ## Next Steps

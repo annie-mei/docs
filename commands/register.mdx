@@ -1,11 +1,12 @@
 ---
 title: /register
-description: Link your AniList account to your Discord profile
+description: Register your AniList username to your Discord profile
+icon: user-plus
 ---
 
 ## Overview
 
-The `/register` command links your AniList account to your Discord profile, enabling guild features that show which members are watching or reading the same anime/manga.
+The `/register` command stores your AniList username and AniList user ID against your Discord account, enabling guild features that show which members are watching or reading the same anime or manga.
 
 ## Command Syntax
 
@@ -90,7 +91,7 @@ The bot does **not** store:
 - Your password or authentication tokens
 
 <Note>
-  All data is fetched fresh from AniList's public API each time you use a command. The bot only stores your username for lookup purposes.
+  Annie Mei does not use AniList OAuth. It looks up your public AniList username, stores the matching AniList ID and username, and fetches media list data from AniList when someone runs `/anime` or `/manga`.
 </Note>
 
 ## Updating Your Registration
@@ -126,8 +127,8 @@ If you've watched "Demon Slayer" on AniList, the embed will include:
 
 ```
 Guild Members:
-- YourDiscordName: Completed, Score: 9/10
-- FriendName: Watching, Score: 8/10
+- YourDiscordName: Completed, Score: 90/100
+- FriendName: Watching, Score: 80/100
 ```
 
 ### What data is visible?

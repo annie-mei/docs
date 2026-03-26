@@ -1,6 +1,7 @@
 ---
 title: MyAnimeList API
 description: REST API integration for fetching anime opening and ending theme songs
+icon: globe
 ---
 
 Annie Mei uses the [MyAnimeList API](https://myanimelist.net/apiconfig/references/api/v2) to fetch opening and ending theme song information for anime. This data supplements the metadata from AniList with detailed theme song listings.
@@ -17,10 +18,9 @@ The `mal_id` is obtained from the AniList API response (`idMal` field).
 
 ## Authentication
 
-The MyAnimeList API requires OAuth 2.0 authentication. Annie Mei uses client credentials flow with the following environment variables:
+Annie Mei authenticates requests with the `X-MAL-CLIENT-ID` header. The current implementation uses a single environment variable:
 
 - `MAL_CLIENT_ID` - Your MyAnimeList API client ID
-- `MAL_CLIENT_SECRET` - Your MyAnimeList API client secret
 
 Register for API access at [MyAnimeList API Config](https://myanimelist.net/apiconfig).
 
@@ -52,7 +52,7 @@ struct SongInfo {
 }
 ```
 
-Source: [src/models/mal_response.rs:11-33](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L11-L33)
+Source: [src/models/mal_response.rs:11-33](https://github.com/annie-mei/annie-mei/blob/main/src/models/mal_response.rs#L11-L33)
 
 ## Song Text Format
 
@@ -74,7 +74,7 @@ The bot parses the following components from each song text:
 4. **Artists**: Text after "by" and before episode range
 5. **Episode Range**: Text in parentheses starting with "(ep"
 
-Source: [src/models/mal_response.rs:147-188](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L147-L188)
+Source: [src/models/mal_response.rs:147-188](https://github.com/annie-mei/annie-mei/blob/main/src/models/mal_response.rs#L147-L188)
 
 ## Example Response
 
@@ -131,7 +131,7 @@ Formatted output example:
 2. **Jiyuu no Tsubasa** by Linked Horizon | ep 14-25
 ```
 
-Source: [src/models/mal_response.rs:199-201](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L199-L201)
+Source: [src/models/mal_response.rs:199-201](https://github.com/annie-mei/annie-mei/blob/main/src/models/mal_response.rs#L199-L201)
 
 ### Spotify Integration
 
@@ -147,7 +147,7 @@ let spotify_url = Self::fetch_spotify_url(
 
 If found, the song title becomes a clickable link to Spotify. See the [Spotify API](/api/spotify) page for details.
 
-Source: [src/models/mal_response.rs:64-72](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L64-L72)
+Source: [src/models/mal_response.rs:64-72](https://github.com/annie-mei/annie-mei/blob/main/src/models/mal_response.rs#L64-L72)
 
 ### Artist Name Truncation
 
@@ -161,7 +161,7 @@ if number_of_artists > 3 {
 }
 ```
 
-Source: [src/models/mal_response.rs:128-132](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L128-L132)
+Source: [src/models/mal_response.rs:128-132](https://github.com/annie-mei/annie-mei/blob/main/src/models/mal_response.rs#L128-L132)
 
 ### List Truncation
 
@@ -180,7 +180,7 @@ fn transform_songs(&self, songs: Option<Vec<SongInfo>>) -> String {
 }
 ```
 
-Source: [src/models/mal_response.rs:203-213](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L203-L213)
+Source: [src/models/mal_response.rs:203-213](https://github.com/annie-mei/annie-mei/blob/main/src/models/mal_response.rs#L203-L213)
 
 ## Usage Example
 
@@ -212,7 +212,7 @@ When song data is unavailable or parsing fails:
 - Missing artist names are omitted from display
 - Missing episode ranges are omitted from display
 
-Source: [src/models/mal_response.rs:155-157](https://github.com/InfernapeXavier/annie-mei/blob/main/src/models/mal_response.rs#L155-L157)
+Source: [src/models/mal_response.rs:155-157](https://github.com/annie-mei/annie-mei/blob/main/src/models/mal_response.rs#L155-L157)
 
 ## Rate Limiting
 
