@@ -35,23 +35,46 @@ mode: custom
 
 ## Key features
 
-<CardGroup cols={2}>
-  <Card title="AniList integration" icon="book-open" color="#c026d3">
-    Fetch anime and manga info from AniList — titles, descriptions, ratings, episodes, and more.
-  </Card>
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 mt-6">
+  <div className="flex gap-4">
+    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/30 flex items-center justify-center">
+      <Icon icon="book-open" className="text-[#c026d3]" size={20} />
+    </div>
+    <div>
+      <h3 className="font-semibold text-base mb-1">AniList integration</h3>
+      <p className="text-sm text-gray-500 dark:text-gray-400 m-0">Fetch anime and manga info — titles, descriptions, ratings, episodes, and more.</p>
+    </div>
+  </div>
+  <div className="flex gap-4">
+    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/30 flex items-center justify-center">
+      <Icon icon="music" className="text-[#c026d3]" size={20} />
+    </div>
+    <div>
+      <h3 className="font-semibold text-base mb-1">Theme song lookup</h3>
+      <p className="text-sm text-gray-500 dark:text-gray-400 m-0">Find opening and ending themes for any anime with direct Spotify links.</p>
+    </div>
+  </div>
+  <div className="flex gap-4">
+    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/30 flex items-center justify-center">
+      <Icon icon="link" className="text-[#c026d3]" size={20} />
+    </div>
+    <div>
+      <h3 className="font-semibold text-base mb-1">AniList account linking</h3>
+      <p className="text-sm text-gray-500 dark:text-gray-400 m-0">Register your AniList username so your scores and watch status appear in server lookups.</p>
+    </div>
+  </div>
+  <div className="flex gap-4">
+    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/30 flex items-center justify-center">
+      <Icon icon="languages" className="text-[#c026d3]" size={20} />
+    </div>
+    <div>
+      <h3 className="font-semibold text-base mb-1">Japanese kana support</h3>
+      <p className="text-sm text-gray-500 dark:text-gray-400 m-0">Search in Japanese kana or kanji for accurate results by original title.</p>
+    </div>
+  </div>
+</div>
 
-  <Card title="Theme song lookup" icon="music" color="#c026d3">
-    Find opening and ending themes for any anime with direct Spotify links.
-  </Card>
-
-  <Card title="AniList account linking" icon="link" color="#c026d3">
-    Register your AniList username so your scores and watch status appear in server lookups.
-  </Card>
-
-  <Card title="Japanese kana support" icon="languages" color="#c026d3">
-    Search in Japanese kana or kanji for accurate results by original title.
-  </Card>
-</CardGroup>
+<div className="mb-8" />
 
 ## Get started
 
@@ -70,9 +93,9 @@ mode: custom
   </Card>
 </CardGroup>
 
-## Built with
+<div className="border-t border-gray-200 dark:border-gray-800 mt-16 mb-8" />
 
-<div className="flex flex-wrap justify-center gap-8 mt-6">
+<div className="flex flex-wrap justify-center gap-8">
   <a href="https://www.rust-lang.org/" target="_blank" rel="noopener" title="Rust — a language empowering everyone to build reliable and efficient software" className="flex flex-col items-center gap-2 w-20 no-underline hover:opacity-80 transition-opacity">
     <img src="https://cdn.simpleicons.org/rust/CE422B" className="w-10 h-10 dark:brightness-150" alt="Rust" />
     <span className="text-sm font-medium text-center">Rust</span>
