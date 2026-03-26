@@ -90,26 +90,21 @@ The bot returns a rich embed with the following information:
   - Individual AniList scores (out of 100)
 </ResponseField>
 
+import { SearchNoResults } from '/snippets/search-no-results.mdx';
+import { NsfwWarning } from '/snippets/search-nsfw-warning.mdx';
+
 ## Search Tips
 
-<Warning>
-  Adult titles are only shown in NSFW channels. Annie Mei also blocks adult results in DMs.
-</Warning>
+<NsfwWarning />
 
 <Tip>
   **AniList IDs are the most reliable way to search.** Find the ID in the URL:
-  
+
   `https://anilist.co/anime/21` → Use `/anime search:21`
 </Tip>
 
 <AccordionGroup>
-  <Accordion title="No results found?">
-    If the bot returns `No such anime`, try:
-    - Verifying the spelling
-    - Using the romaji title instead of English
-    - Searching with fewer words ("Jujutsu Kaisen" instead of "Jujutsu Kaisen Season 2")
-    - Using the AniList ID from the website
-  </Accordion>
+  <SearchNoResults mediaType="anime" extra='Searching with fewer words ("Jujutsu Kaisen" instead of "Jujutsu Kaisen Season 2")' />
 
   <Accordion title="Numeric titles">
     Wrap number-based titles in quotes:

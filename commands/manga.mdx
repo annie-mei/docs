@@ -89,26 +89,21 @@ The bot returns a rich embed with the following information:
   - Individual AniList scores (out of 100)
 </ResponseField>
 
+import { SearchNoResults } from '/snippets/search-no-results.mdx';
+import { NsfwWarning } from '/snippets/search-nsfw-warning.mdx';
+
 ## Search Tips
 
-<Warning>
-  Adult titles are only shown in NSFW channels. Annie Mei also blocks adult results in DMs.
-</Warning>
+<NsfwWarning />
 
 <Tip>
   **AniList IDs guarantee exact matches.** Find the ID in the URL:
-  
+
   `https://anilist.co/manga/30013` → Use `/manga search:30013`
 </Tip>
 
 <AccordionGroup>
-  <Accordion title="No results found?">
-    If the bot returns `No such manga`, try:
-    - Verifying the spelling
-    - Using the romaji title instead of English
-    - Searching for the Japanese title in kana/kanji
-    - Using the AniList ID from the website
-  </Accordion>
+  <SearchNoResults mediaType="manga" extra="Searching for the Japanese title in kana/kanji" />
 
   <Accordion title="Light novels vs manga">
     AniList treats light novels and manga as separate entries. If searching for a light novel:
