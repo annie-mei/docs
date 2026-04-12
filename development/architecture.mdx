@@ -47,8 +47,11 @@ src/commands/
 │   └── queries.rs      # GraphQL queries for AniList API
 ├── manga/
 ├── songs/
+├── register/
+│   └── command.rs      # OAuth link command and response handling
 ├── ping.rs             # Simple single-file command
 ├── help.rs
+├── whoami.rs           # Shows linked AniList account for the caller
 └── mod.rs              # Module exports
 ```
 
@@ -154,10 +157,13 @@ The bot requires these environment variables to run:
 | `ENV`                     | Environment name (dev/staging/prod) |
 | `DATABASE_URL`            | PostgreSQL connection string       |
 | `REDIS_URL`               | Redis connection string            |
+| `AUTH_SERVICE_BASE_URL`   | Auth service origin for OAuth start URLs |
 | `SPOTIFY_CLIENT_ID`       | Spotify API client ID              |
 | `SPOTIFY_CLIENT_SECRET`   | Spotify API client secret          |
 | `MAL_CLIENT_ID`           | MyAnimeList API client ID          |
+| `OAUTH_CONTEXT_SIGNING_SECRET` | Shared secret for OAuth context signing |
 | `USERID_HASH_SALT`        | Salt for hashing Discord user IDs in logs |
+| `OAUTH_CONTEXT_TTL_SECONDS` | Optional: OAuth context expiry in seconds (default `300`) |
 | `SENTRY_TRACES_SAMPLE_RATE` | Optional: Sentry trace sampling (0.0-1.0) |
 | `SERVER_PORT`             | Optional: health server port (default `8080`) |
 | `GEMINI_API_KEY`          | Optional: enables Gemini/OpenAI-compatible LLM features |

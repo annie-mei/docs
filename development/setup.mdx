@@ -72,6 +72,11 @@ MAL_CLIENT_ID=your_mal_client_id
 
 # Privacy
 USERID_HASH_SALT=generate_a_random_secret_value
+
+# OAuth linking
+AUTH_SERVICE_BASE_URL=https://auth.your-domain.com
+OAUTH_CONTEXT_SIGNING_SECRET=generate_a_random_secret_value
+OAUTH_CONTEXT_TTL_SECONDS=300
 ```
 
 <AccordionGroup>
@@ -97,6 +102,13 @@ USERID_HASH_SALT=generate_a_random_secret_value
     ```
 
     For production, sign up at [sentry.io](https://sentry.io) and create a Rust project.
+  </Accordion>
+
+  <Accordion title="Set up AniList OAuth linking">
+    1. Run the `auth` service so `/register` can redirect users for OAuth
+    2. Use the same value for `OAUTH_CONTEXT_SIGNING_SECRET` in both services
+    3. Set `AUTH_SERVICE_BASE_URL` to the origin of the auth service (for example `https://auth.example.com`)
+    4. Start the bot after both services are configured and reachable
   </Accordion>
 </AccordionGroup>
 

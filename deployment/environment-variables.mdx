@@ -104,6 +104,27 @@ These environment variables **must** be set for Annie Mei to run.
   Defined in: `src/utils/statics.rs:16`
 </ParamField>
 
+### OAuth / registration
+
+<ParamField path="AUTH_SERVICE_BASE_URL" type="string" required>
+  Base URL of the external auth service that handles the `/oauth/anilist/start` redirect.
+
+  Important:
+
+  - Must be a valid URL origin (example: `https://auth.example.com`)
+  - Do not include a path in this value
+
+  Defined in: `src/utils/statics.rs:23`
+</ParamField>
+
+<ParamField path="OAUTH_CONTEXT_SIGNING_SECRET" type="string" required>
+  Secret used to sign OAuth context payloads.
+
+  Must match the same environment variable in the `auth` service.
+
+  Defined in: `src/utils/statics.rs:24`
+</ParamField>
+
 ### Privacy
 
 <ParamField path="USERID_HASH_SALT" type="string" required>
@@ -146,6 +167,14 @@ These variables have defaults or are optional.
   Defined in: `src/utils/statics.rs:19-20`
 </ParamField>
 
+<ParamField path="OAUTH_CONTEXT_TTL_SECONDS" type="integer" default="300">
+  How long OAuth context tokens remain valid, in seconds.
+
+  Must be a positive integer. The bot uses this value when generating `/register` links.
+
+  Defined in: `src/utils/statics.rs:25`
+</ParamField>
+
 ### AI / LLM
 
 <ParamField path="GEMINI_API_KEY" type="string">
@@ -153,19 +182,19 @@ These variables have defaults or are optional.
 
   If this variable is missing, the bot can continue running without LLM features.
 
-  Defined in: `src/utils/statics.rs:25`
+  Defined in: `src/utils/statics.rs:28`
 </ParamField>
 
 <ParamField path="LLM_MODEL" type="string" default="gemini-2.0-flash">
   Optional model override for the LLM client.
 
-  Defined in: `src/utils/statics.rs:26`
+  Defined in: `src/utils/statics.rs:29`
 </ParamField>
 
 <ParamField path="LLM_BASE_URL" type="string" default="https://generativelanguage.googleapis.com/v1beta/openai">
   Optional base URL override for an OpenAI-compatible chat completions API.
 
-  Defined in: `src/utils/statics.rs:27`
+  Defined in: `src/utils/statics.rs:30`
 </ParamField>
 
 ### Logging
@@ -223,6 +252,14 @@ These variables have defaults or are optional.
 |----------|------|----------|-------------|
 | `USERID_HASH_SALT` | string | Yes | Salt for hashing user IDs |
 
+### OAuth / registration
+
+| Variable | Type | Required | Description |
+|----------|------|----------|-------------|
+| `AUTH_SERVICE_BASE_URL` | string | Yes | Origin URL of auth service for OAuth start |
+| `OAUTH_CONTEXT_SIGNING_SECRET` | string | Yes | Shared secret for signing OAuth contexts |
+| `OAUTH_CONTEXT_TTL_SECONDS` | integer | No | OAuth context expiry seconds (default: 300) |
+
 ### Server
 
 | Variable | Type | Required | Description |
@@ -255,6 +292,11 @@ REDIS_URL=redis://localhost:6379
 SPOTIFY_CLIENT_ID=your_spotify_client_id
 SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
 MAL_CLIENT_ID=your_mal_client_id
+
+# OAuth linking
+AUTH_SERVICE_BASE_URL=https://auth.example.com
+OAUTH_CONTEXT_SIGNING_SECRET=your_shared_oauth_context_signing_secret
+OAUTH_CONTEXT_TTL_SECONDS=300
 
 # Monitoring
 SENTRY_DSN=https://key@org.ingest.sentry.io/project
@@ -320,6 +362,8 @@ Annie Mei will panic on startup if required environment variables are missing:
 Expected a token in the environment
 Expected a sentry dsn in the environment
 Expected an environment in the environment
+Failed to load OAuth context config
+"Expected an `AUTH_SERVICE_BASE_URL` environment variable" or equivalent missing/invalid OAuth value
 ```
 
 Ensure all required variables are set before starting the bot.
