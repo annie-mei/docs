@@ -1,29 +1,29 @@
 ---
 title: /help & /ping
-description: Bot information and health check commands
+description: Bot information, command list, and health check
 icon: info
 ---
 
 ## Overview
 
-Annie Mei provides two utility commands for getting help and checking bot status:
+Annie Mei includes two utility slash commands to help you get started and confirm bot health:
 
-- `/help` - Displays a guide to available commands and usage tips
+- `/help` - Shows a command guide and usage tips
 - `/ping` - Verifies the bot is online and responding
 
 ---
 
-## /help Command
+## /help command
 
-### Command Syntax
+### Command syntax
 
-```
+```text
 /help
 ```
 
-No parameters required.
+No parameters are required.
 
-### Response Data
+### Response data
 
 The `/help` command returns an embed with:
 
@@ -32,150 +32,151 @@ The `/help` command returns an embed with:
 </ResponseField>
 
 <ResponseField name="Description">
-  Overview of the bot's capabilities:
+  Overview of what the bot can do:
   - Anime and manga detail lookups
   - Theme song searches
-  - Guild member watch/read status
+  - AniList account linking and guild watch/read visibility
 </ResponseField>
 
-<ResponseField name="Getting Started">
-  Step-by-step instructions:
-  1. Link your AniList account with `/register`
-  2. Use `/anime` or `/manga` to search
-  3. Use `/songs` for theme songs
+<ResponseField name="Getting started">
+  1. Run `/register` and click the AniList link button
+  2. Finish authorization in your browser
+  3. Use `/anime` or `/manga` to search media
+  4. Use `/songs` for opening and ending tracks
+  5. Use `/whoami` to confirm the linked profile
 </ResponseField>
 
 <ResponseField name="Commands">
-  Complete list of slash commands with syntax:
-  - `/anime search:<term or id>` - Anime details
-  - `/manga search:<term or id>` - Manga details
-  - `/songs search:<term or id>` - OP/ED songs + links
-  - `/register anilist:<username>` - Link AniList profile
-  - `/ping` - Bot health check
-  - `/help` - Show this guide
+  Complete slash command list:
+  - `/anime search:<term or id>`
+  - `/manga search:<term or id>`
+  - `/songs search:<term or id>`
+  - `/register` (secure OAuth link flow)
+  - `/whoami` (shows linked AniList account)
+  - `/ping`
+  - `/help`
 </ResponseField>
 
 <ResponseField name="Tips">
-  Search recommendations:
-  - Full names, short names, or AniList IDs all work
-  - If no result is found, try a more specific query
+  - Search with names, aliases, or AniList IDs
+  - Use exact IDs for fastest lookups
+  - Run `/whoami` if member status is not showing as expected
 </ResponseField>
 
-<ResponseField name="Thumbnail">
-  Annie Mei character image (if available)
-</ResponseField>
+### Example usage
 
-<ResponseField name="Footer">
-  Bot name and current timestamp
-</ResponseField>
-
-### Example Usage
-
-```
+```text
 /help
 ```
 
-Returns the full help embed in the channel where you ran the command.
+The bot posts the full command reference in the current channel.
 
-### Source Code Reference
+### Source code reference
 
 Implementation: `src/commands/help.rs:13`
 
-The `register()` function defines the command:
-
-```rust
-pub fn register() -> CreateCommand {
-    CreateCommand::new("help").description("Shows how to use the bot")
-}
-```
-
-The embed is built in `src/commands/help.rs:23` with all command documentation.
+`help()` defines the slash command metadata and `run()` builds the embed response.
 
 ---
 
-## /ping Command
+## /whoami command
 
-### Command Syntax
+### Command syntax
 
+```text
+/whoami
 ```
+
+No parameters are required.
+
+### Response messages
+
+<ResponseField name="Linked account">
+  ```
+  Your linked AniList account is **AnimeName**.
+  Profile: <https://anilist.co/user/AnimeName>
+  ```
+  Returns the AniList username and profile URL currently stored in your account link.
+</ResponseField>
+
+<ResponseField name="Not linked yet">
+  ```
+  You have not linked an AniList account yet. Run `/register` first.
+  ```
+  Use `/register` to start the OAuth flow.
+</ResponseField>
+
+### Example usage
+
+```text
+/whoami
+```
+
+The bot returns your link status in a private ephemeral response.
+
+### Source code reference
+
+Implementation: `src/commands/whoami.rs:29`
+
+`whoami()` defines the slash command and `handle_whoami()` formats the user-facing output.
+
+---
+
+## /ping command
+
+### Command syntax
+
+```text
 /ping
 ```
 
-No parameters required.
+No parameters are required.
 
-### Response Message
+### Response message
 
-The `/ping` command returns a text message:
+The `/ping` command returns:
 
-```
+```text
 Hello @YourUsername! I'm Annie Mei, a bot that helps you find anime and manga!
 ```
 
-### Use Cases
+### Use cases
 
 <CardGroup cols={2}>
   <Card title="Health check" icon="heart-pulse">
-    Verify the bot is online and responding to commands
+    Verify the bot is online and responding
   </Card>
   <Card title="Test permissions" icon="shield-check">
-    Confirm the bot can read and send messages in the channel
+    Confirm bot can read and send messages in the channel
   </Card>
-  <Card title="Quick response" icon="bolt">
-    Get an instant reply to confirm the bot is responding
+  <Card title="Fast feedback" icon="bolt">
+    Confirm interaction routing is working
   </Card>
   <Card title="Introduction" icon="hand-wave">
-    Learn the bot's name and purpose
+    See the bot's name and feature summary
   </Card>
 </CardGroup>
 
-### Example Usage
-
-```
-/ping
-```
-
-Returns:
-
-```
-Hello @Alice! I'm Annie Mei, a bot that helps you find anime and manga!
-```
-
-### Source Code Reference
+### Source code reference
 
 Implementation: `src/commands/ping.rs:11`
 
-The `register()` function defines the command:
-
-```rust
-pub fn register() -> CreateCommand {
-    CreateCommand::new("ping").description("A ping command")
-}
-```
-
-The response logic at `src/commands/ping.rs:21` uses a transport-agnostic handler:
-
-```rust
-pub fn handle_ping(user_mention: &str) -> CommandResponse {
-    CommandResponse::Message(format!(
-        "Hello {user_mention}! I'm Annie Mei, a bot that helps you find anime and manga!",
-    ))
-}
-```
+`ping()` defines the slash command and `run()` sends a simple greeting response.
 
 ---
 
-## When to Use Each Command
+## When to use each command
 
-| Scenario | Command | Reason |
-|----------|---------|--------|
-| First time using the bot | `/help` | Get a full guide to all features |
-| Forgot command syntax | `/help` | See all commands with examples |
-| Bot seems unresponsive | `/ping` | Quick health check |
-| Want to test permissions | `/ping` | Minimal response to verify bot access |
-| Onboarding new users | `/help` | Share the embed for reference |
+| Scenario | Command | Why |
+|----------|---------|-----|
+| You need a command cheat sheet | `/help` | Opens the full command list |
+| You are not sure if `/anime` will work | `/help` | Confirms available features |
+| Bot feels unresponsive | `/ping` | Quick health check |
+| You want to confirm linked account | `/whoami` | Shows linked AniList username |
+| You need to link again | `/register` | Restarts OAuth linking |
 
 <Tip>
-  Both `/help` and `/ping` respond instantly because they don't query external APIs. If either command fails, the bot may be offline or lacking permissions in your server.
+  If `/help` or `/ping` fails, check the bot is online and has message permissions in the channel.
 </Tip>
 
 ---
@@ -183,28 +184,32 @@ pub fn handle_ping(user_mention: &str) -> CommandResponse {
 ## Troubleshooting
 
 <AccordionGroup>
-  <Accordion title="/help or /ping doesn't respond">
-    **Possible causes:**
-    - Bot is offline or restarting
-    - Bot lacks permission to send messages in the channel
-    - Discord API issues
-    
-    **Solution:**
-    - Check bot's online status in the member list
-    - Verify the bot has "Send Messages" and "Use Application Commands" permissions
-    - Try again in a few seconds
+  <Accordion title="/help image or embed looks broken">
+    **Possible causes**
+
+    - The bot is temporarily unable to attach `mei.jpg`
+    - Discord embed rendering is delayed
+
+    **Fix**
+
+    - Retry the command
+    - Verify the bot files are intact on its host
   </Accordion>
 
-  <Accordion title="/help image doesn't load">
-    If the help embed shows a broken thumbnail:
-    - The `mei.jpg` file may be missing from the bot's directory
-    - This doesn't affect functionality, only the visual appearance
-    - The rest of the help embed will still display correctly
+  <Accordion title="/whoami never shows a profile">
+    **Possible causes**
+
+    - Registration flow has not completed
+    - OAuth flow was interrupted before callback finished
+
+    **Fix**
+
+    - Run `/register` and complete the browser flow in one session
+    - Ask your bot administrator to verify `AUTH_SERVICE_BASE_URL` and `OAUTH_CONTEXT_SIGNING_SECRET`
   </Accordion>
 
   <Accordion title="/ping mentions the wrong user">
-    This shouldn't happen unless the bot has a critical bug. If `/ping` mentions someone else:
-    - Report the issue to the bot administrator
-    - Restart the bot
+    This is usually caused by a client-side interaction display issue.
+    If it continues, restart the bot and check for updates.
   </Accordion>
 </AccordionGroup>
