@@ -58,17 +58,18 @@
           "installation"
         ]
       },
-      {
-        "group": "Commands",
-        "pages": [
-          "commands/overview",
-          "commands/anime",
-          "commands/manga",
-          "commands/songs",
-          "commands/register",
-          "commands/help"
-        ]
-      },
+        {
+          "group": "Commands",
+          "pages": [
+            "commands/overview",
+            "commands/anime",
+            "commands/manga",
+            "commands/songs",
+            "commands/register",
+            "commands/whoami",
+            "commands/help"
+          ]
+        },
       {
         "group": "Development",
         "pages": [

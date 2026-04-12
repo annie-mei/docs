@@ -1,0 +1,62 @@
+---
+title: /whoami
+description: Show the AniList account linked to your Discord profile
+icon: user-search
+---
+
+## Overview
+
+The `/whoami` command shows which AniList account is currently linked to your Discord profile.
+
+## Command syntax
+
+```text
+/whoami
+```
+
+No parameters are required.
+
+## Response messages
+
+<ResponseField name="Linked account">
+  ```text
+  Your linked AniList account is **AnimeName**.
+  Profile: <https://anilist.co/user/AnimeName>
+  ```
+
+  You see the username and profile URL that was stored when you completed `/register`.
+</ResponseField>
+
+<ResponseField name="Not linked yet">
+  ```text
+  You have not linked an AniList account yet. Run `/register` first.
+  ```
+
+  `/register` starts the OAuth flow that stores your AniList account.
+</ResponseField>
+
+<ResponseField name="Lookup error">
+  ```text
+  I hit an internal error while looking up your AniList account. Please try again later.
+  ```
+
+  This message appears if the bot cannot query user data at that moment.
+</ResponseField>
+
+## Example usage
+
+```text
+/whoami
+```
+
+Use it to verify that `/register` completed and stored your account for guild-aware lookups.
+
+## Source code reference
+
+Implementation: `src/commands/whoami.rs:29`
+
+`whoami()` defines the slash command, and `handle_whoami()` builds the response.
+
+<Tip>
+  If `/whoami` returns the default message, run `/register` again and complete the OAuth flow.
+</Tip>
