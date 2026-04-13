@@ -80,18 +80,24 @@ Get Annie Mei running in your Discord server in just a few minutes.
     </Warning>
   </Step>
   
-  <Step title="Link Your AniList Account (Optional)">
-    To include your AniList watch or read status in server lookups, register your AniList username:
+  <Step title="Link your AniList account (optional)">
+    To include your AniList watch or read status in server lookups, link your AniList account:
     
     ```text
-    /register anilist:YourUsername
+    /register
     ```
     
-    Annie Mei looks up that public AniList username and stores the matching AniList ID for your Discord account. After that, your status and score can appear in `/anime` and `/manga` results for your server.
+    Complete the browser flow that opens from the button. After that, your status and score can appear in `/anime` and `/manga` results for your server.
+
+    Confirm the linked account with:
+
+    ```text
+    /whoami
+    ```
   </Step>
 </Steps>
 
-## Available Commands
+## Available commands
 
 Here's a quick reference of all available commands:
 
@@ -99,7 +105,8 @@ Here's a quick reference of all available commands:
 |---------|-------------|
 | `/help` | Shows all available commands and usage information |
 | `/ping` | Quick greeting to confirm the bot is online |
-| `/register anilist:<username>` | Register your AniList username for server member data |
+| `/register` | Start secure AniList OAuth linking |
+| `/whoami` | View the AniList account currently linked to your Discord profile |
 | `/anime search:<term or id>` | Look up anime by name or AniList ID |
 | `/manga search:<term or id>` | Look up manga by name or AniList ID |
 | `/songs search:<term or id>` | Find opening and ending theme songs for an anime |

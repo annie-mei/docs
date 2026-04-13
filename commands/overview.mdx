@@ -1,42 +1,45 @@
 ---
 title: Commands Overview
-description: Complete guide to Annie Mei's Discord slash commands
+description: Complete guide to Annie Mei slash commands and usage patterns
 icon: terminal
 ---
 
-Annie Mei provides slash commands for looking up anime and manga information from AniList, finding theme songs, and registering AniList usernames so server member data can appear in media results.
+Use Annie Mei slash commands to search AniList and tie your AniList profile to your Discord profile for guild visibility.
 
-## Available Commands
+## Available commands
 
 <CardGroup cols={2}>
   <Card title="/anime" icon="tv" href="/commands/anime">
     Fetch detailed anime information from AniList
   </Card>
-  <Card title="/manga" icon="book" href="/commands/manga">
+  <Card title="/manga" icon="book-open" href="/commands/manga">
     Look up manga details and metadata
   </Card>
   <Card title="/songs" icon="music" href="/commands/songs">
     Find opening and ending theme songs with Spotify links
   </Card>
   <Card title="/register" icon="user-plus" href="/commands/register">
-    Register your AniList username to your Discord profile
+    Link your AniList account with secure OAuth flow
+  </Card>
+  <Card title="/whoami" icon="user-search" href="/commands/whoami">
+    Check which AniList account is currently linked
   </Card>
   <Card title="/help" icon="circle-question" href="/commands/help">
-    View command reference and usage tips
+    Browse command reference and usage tips
   </Card>
   <Card title="/ping" icon="heart-pulse" href="/commands/help#ping">
     Check if the bot is online and responding
   </Card>
 </CardGroup>
 
-## Search Tips
+## Search tips
 
-All media lookup commands (`/anime`, `/manga`, `/songs`) accept flexible search inputs:
+All media lookup commands (`/anime`, `/manga`, `/songs`) accept flexible search inputs.
 
 <AccordionGroup>
   <Accordion title="AniList IDs for exact matches">
-    Use the numeric ID from AniList URLs for guaranteed accuracy:
-    ```
+    Use the numeric ID from AniList URLs for reliable results:
+    ```text
     /anime search:21
     /manga search:30013
     ```
@@ -44,16 +47,16 @@ All media lookup commands (`/anime`, `/manga`, `/songs`) accept flexible search 
   </Accordion>
 
   <Accordion title="Japanese kana and kanji">
-    Full Japanese character support for searches:
-    ```
+    Search titles in native scripts:
+    ```text
     /manga search:きめつのやいば
     /anime search:ワンピース
     ```
   </Accordion>
 
   <Accordion title="Numeric titles require quotes">
-    Wrap number-based titles in quotes:
-    ```
+    Wrap number-only titles in quotes so parsing is stable:
+    ```text
     /songs search:"86"
     /anime search:"91 Days"
     ```
@@ -61,46 +64,49 @@ All media lookup commands (`/anime`, `/manga`, `/songs`) accept flexible search 
 
   <Accordion title="Try multiple variations">
     If no result is found, try:
-    - Romaji version: `One Piece`
+    - Romaji: `One Piece`
     - English title: `Demon Slayer`
-    - Alternative spellings: `Jujutsu Kaisen` vs `Jujutsyu Kaisen`
+    - Alternate spelling: `Jujutsu Kaisen` vs `Jujutsyu Kaisen`
   </Accordion>
 </AccordionGroup>
 
-## Guild Features
+## Guild visibility
 
-When you use `/anime` or `/manga` in a Discord server where members have registered their AniList usernames:
+When you link your AniList account with `/register`, `/anime` and `/manga` can show registered member data:
 
-- The bot shows which guild members are watching/reading the media
-- Displays each member's score and status (watching, completed, etc.)
-- Uses AniList's 100-point score format when a score is available
+- member watch/reading status
+- individual AniList score
+- list activity inside the Discord server where the command runs
 
 <Note>
-  Guild member data can appear as soon as one registered member in your server has that title on AniList. Anyone who can see the message can see the embed output.
+  Linking one member is enough for `/anime` and `/manga` to include status in that server.
 </Note>
 
-## Getting Started
+## Getting started
 
 <Steps>
   <Step title="Link your AniList account">
-    Run `/register anilist:<username>` to enable guild features and personalized data.
+    Run `/register` and complete the OAuth browser flow.
   </Step>
-  <Step title="Search for media">
-    Use `/anime` or `/manga` with an AniList ID or search term.
+  <Step title="Confirm your link">
+    Use `/whoami` to verify the connected AniList username.
   </Step>
-  <Step title="Find theme songs">
-    Use `/songs` to get opening/ending tracks with Spotify links.
+  <Step title="Search media">
+    Use `/anime` or `/manga` with a title or AniList ID.
+  </Step>
+  <Step title="Find songs">
+    Use `/songs` to get opening and ending theme tracks.
   </Step>
 </Steps>
 
-## Command Response Times
+## Command response times
 
-All commands defer the initial response to prevent Discord timeouts. Expect:
+Commands defer initial responses to prevent Discord timeouts. Expect:
 
-- **AniList ID lookups** to be the fastest path when you know the exact media ID
-- **Title searches** to take longer because Annie Mei needs to resolve the best AniList match first
-- **Theme song lookups** to take the longest because Annie Mei queries AniList, MyAnimeList, and Spotify
+- **AniList ID lookups** to return fastest
+- **Text searches** to take longer while AniList search resolves first
+- **Theme song lookups** to take the longest because they combine AniList, MAL, and Spotify
 
 <Warning>
-  If a command takes longer than 15 seconds, the bot may have encountered an API issue. Try again or check `/ping` to verify the bot is online.
+  If a command runs longer than 15 seconds, retry and check `/ping`.
 </Warning>

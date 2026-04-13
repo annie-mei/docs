@@ -1,0 +1,102 @@
+---
+title: Auth service
+description: Configure and run the Annie Mei auth service for AniList OAuth linking.
+icon: shield-check
+---
+
+This page covers the companion `auth` service in `auth/`.
+
+The auth service makes AniList account linking work for `/register`.
+
+## What the auth service does
+
+The auth service:
+
+- receives the signed OAuth context from the bot
+- validates the context and creates a single-use OAuth state
+- redirects the browser to AniList
+- handles the AniList callback
+- exchanges the auth code for AniList tokens
+- fetches the AniList viewer ID and stores the linked credentials
+- serves `GET /healthz`
+
+## Before you start
+
+You need an AniList OAuth application with a callback URL that points to the auth service.
+
+For local development, use:
+
+```text
+http://127.0.0.1:8000/oauth/anilist/callback
+```
+
+## Configure the auth environment
+
+From the repository root:
+
+```bash
+cd auth
+cp .env.example .env
+```
+
+Then edit `auth/.env`:
+
+```bash
+ANILIST_CLIENT_ID=your_anilist_client_id
+ANILIST_CLIENT_SECRET=your_anilist_client_secret
+ANILIST_REDIRECT_URI=http://127.0.0.1:8000/oauth/anilist/callback
+DATABASE_URL=postgres://user:password@localhost/annie_mei_auth
+ROCKET_SECRET_KEY=generate_a_random_secret_key
+OAUTH_CONTEXT_SIGNING_SECRET=generate_a_random_secret_value
+USERID_HASH_SALT=generate_a_random_secret_value
+OAUTH_CONTEXT_TTL_SECONDS=300
+OAUTH_STATE_TTL_SECONDS=300
+SENTRY_DSN=
+SENTRY_ENVIRONMENT=development
+SENTRY_TRACES_SAMPLE_RATE=0.0
+```
+
+<Note>
+  `OAUTH_CONTEXT_SIGNING_SECRET` must match the bot service value. Keep `USERID_HASH_SALT` aligned too if you want matching hashed user identifiers across logs.
+</Note>
+
+## Run the auth service locally
+
+<Steps>
+  <Step title="Create the auth database">
+    Create the PostgreSQL database or connection target you want the auth service to use.
+
+    ```bash
+    createdb annie_mei_auth
+    ```
+  </Step>
+
+  <Step title="Start the service">
+    ```bash
+    cd auth
+    cargo run
+    ```
+
+    On startup, the service connects to PostgreSQL, runs SQLx migrations, and serves the AniList OAuth routes.
+  </Step>
+
+  <Step title="Verify the health endpoint">
+    ```bash
+    curl http://127.0.0.1:8000/healthz
+    ```
+  </Step>
+</Steps>
+
+## Verify the OAuth flow
+
+1. Start the bot service.
+2. Run `/register` in Discord.
+3. Click **Link AniList Account**.
+4. Complete the AniList flow in the browser.
+5. Run `/whoami` to confirm the linked profile.
+
+## Related pages
+
+- [Self-hosting architecture](/self-hosting/architecture)
+- [Bot service](/self-hosting/bot-service)
+- [Environment Variables](/deployment/environment-variables)
