@@ -22,8 +22,8 @@ This command takes no parameters.
 
 1. Annie Mei creates a short-lived OAuth context.
 2. The bot sends an ephemeral response with a `Link AniList Account` button.
-3. The button opens `${AUTH_SERVICE_BASE_URL}/oauth/anilist/start` in your browser.
-4. After AniList authorization, the bot stores your AniList identity.
+3. The button opens the auth service OAuth start route in your browser.
+4. After AniList authorization, Annie Mei stores your linked AniList identity.
 5. You can check the linked profile with `/whoami`.
 
 ## Usage examples
@@ -135,6 +135,6 @@ The bot does not store:
 
 Implementation: `src/commands/register/command.rs`
 
-`register()` defines the slash command and `run()` creates the OAuth link for `AUTH_SERVICE_BASE_URL`.
+`register()` defines the slash command and `run()` creates the OAuth link using `AUTH_SERVICE_BASE_URL`.
 
-The final link handling happens in the auth service repository (`../auth`).
+The AniList browser flow is completed by the separate auth service described in [Auth service](/self-hosting/auth-service).

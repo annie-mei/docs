@@ -1,0 +1,116 @@
+---
+title: Bot service
+description: Configure and run the main Annie Mei Discord bot service.
+icon: bot
+---
+
+This page covers the main `annie-mei` service in the repository root.
+
+## What the bot service does
+
+The bot service:
+
+- connects to Discord and registers slash commands
+- handles `/ping`, `/help`, `/anime`, `/manga`, `/songs`, `/register`, and `/whoami`
+- connects to PostgreSQL and runs embedded Diesel migrations on startup
+- connects to Redis for API response caching
+- serves `GET /healthz` on the local HTTP server
+- builds the AniList OAuth start link that sends members to the auth service
+
+## Required dependencies
+
+Before you run the bot service, make sure you have:
+
+- a Discord bot token
+- PostgreSQL
+- Redis
+- Spotify API credentials
+- MyAnimeList API client ID
+- auth service configuration values, including `AUTH_SERVICE_BASE_URL`
+
+<Note>
+  The bot currently loads OAuth configuration during startup. That means `AUTH_SERVICE_BASE_URL` and `OAUTH_CONTEXT_SIGNING_SECRET` are part of the normal bot setup, not optional extras.
+</Note>
+
+## Configure the bot environment
+
+Create `.env` in the repository root and set the bot service variables:
+
+```bash
+# Discord
+DISCORD_TOKEN=your_discord_bot_token
+
+# Database
+DATABASE_URL=postgres://user:password@localhost/annie_mei
+
+# Cache
+REDIS_URL=redis://localhost:6379
+
+# External APIs
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+MAL_CLIENT_ID=your_mal_client_id
+
+# Monitoring
+SENTRY_DSN=your_sentry_dsn
+ENV=development
+SENTRY_TRACES_SAMPLE_RATE=0.0
+
+# Shared privacy and OAuth values
+USERID_HASH_SALT=generate_a_random_secret_value
+AUTH_SERVICE_BASE_URL=http://127.0.0.1:8000
+OAUTH_CONTEXT_SIGNING_SECRET=generate_a_random_secret_value
+
+# Optional
+OAUTH_CONTEXT_TTL_SECONDS=300
+SERVER_PORT=8080
+RUST_LOG=info,serenity=warn
+```
+
+Use [Environment Variables](/deployment/environment-variables) for the full bot and auth reference.
+
+## Run the bot service locally
+
+<Steps>
+  <Step title="Create the database">
+    ```bash
+    createdb annie_mei
+    ```
+  </Step>
+
+  <Step title="Start Redis">
+    Make sure your local Redis instance is reachable at the value in `REDIS_URL`.
+  </Step>
+
+  <Step title="Start the bot">
+    ```bash
+    cargo run
+    ```
+
+    On startup, the bot will connect to PostgreSQL, run migrations, load OAuth configuration, register slash commands, and start the local health server.
+  </Step>
+
+  <Step title="Verify the health endpoint">
+    ```bash
+    curl http://127.0.0.1:8080/healthz
+    ```
+  </Step>
+</Steps>
+
+## Verify in Discord
+
+Try these slash commands after the bot is online:
+
+```text
+/ping
+/anime search:Attack on Titan
+/register
+```
+
+If `/register` returns a link button but the browser flow fails, finish the [Auth service](/self-hosting/auth-service) setup and make sure both services share the same `OAUTH_CONTEXT_SIGNING_SECRET`.
+
+## Related pages
+
+- [Self-hosting architecture](/self-hosting/architecture)
+- [Auth service](/self-hosting/auth-service)
+- [Environment Variables](/deployment/environment-variables)

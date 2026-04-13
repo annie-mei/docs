@@ -1,0 +1,69 @@
+---
+title: Self-hosting architecture
+description: Understand how the Annie Mei bot service and auth service work together.
+icon: boxes
+---
+
+Self-hosted Annie Mei is a two-service setup.
+
+The bot service handles Discord interactions and media lookups. The auth service handles AniList OAuth for `/register`.
+
+## Services
+
+| Service | Repo path | What it does | Main dependencies |
+|---------|-----------|--------------|-------------------|
+| Bot service | `./` | Runs slash commands, serves `/healthz`, reads AniList, MyAnimeList, Spotify, PostgreSQL, and Redis | Discord, PostgreSQL, Redis |
+| Auth service | `./auth` | Validates signed OAuth context, redirects to AniList, handles callback, stores OAuth credentials | AniList OAuth, PostgreSQL |
+
+## How `/register` works
+
+<Steps>
+  <Step title="Member runs `/register` in Discord">
+    The bot creates a signed OAuth context that includes the caller's Discord user ID and the interaction ID.
+  </Step>
+
+  <Step title="Bot returns a private link button">
+    The button points to the auth service `/oauth/anilist/start` route using `AUTH_SERVICE_BASE_URL`.
+  </Step>
+
+  <Step title="Auth service validates the context">
+    The auth service verifies the context signature, creates a single-use OAuth state value, and redirects the browser to AniList.
+  </Step>
+
+  <Step title="AniList redirects back to the auth service">
+    The auth service exchanges the authorization code, fetches the AniList viewer ID, and stores the linked credentials.
+  </Step>
+
+  <Step title="Bot commands can use the linked account">
+    `/whoami` can show the linked profile, and media lookups can include member list status and score when that data is available.
+  </Step>
+</Steps>
+
+## Shared values
+
+These values matter across both services:
+
+| Variable | Why it matters |
+|----------|----------------|
+| `OAUTH_CONTEXT_SIGNING_SECRET` | Must match in both services so the auth service can validate the bot's signed OAuth context |
+| `USERID_HASH_SALT` | Keep this aligned if you want the same hashed user fingerprints in logs and Sentry |
+| `AUTH_SERVICE_BASE_URL` | The bot uses this origin to build the browser link for the auth service |
+
+## Health endpoints
+
+| Service | Default local address | Endpoint |
+|---------|------------------------|----------|
+| Bot service | `127.0.0.1:8080` | `/healthz` |
+| Auth service | `127.0.0.1:8000` | `/healthz` |
+
+## What happens if the auth service is missing
+
+The bot still owns the `/register` command, but full self-hosted account linking requires the auth service.
+
+Because the bot loads OAuth configuration on startup, you should treat the auth service as part of the standard Annie Mei deployment rather than an optional add-on.
+
+## Next steps
+
+- Set up the [Bot service](/self-hosting/bot-service)
+- Set up the [Auth service](/self-hosting/auth-service)
+- Review [Environment Variables](/deployment/environment-variables)

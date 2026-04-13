@@ -6,6 +6,10 @@ icon: wrench
 
 This guide walks you through setting up Annie Mei for local development.
 
+<Note>
+  This page focuses on the main bot service. If you want to test `/register` end to end, also set up the [Auth service](/self-hosting/auth-service).
+</Note>
+
 ## Prerequisites
 
 Ensure you have the following installed:
@@ -105,9 +109,9 @@ OAUTH_CONTEXT_TTL_SECONDS=300
   </Accordion>
 
   <Accordion title="Set up AniList OAuth linking">
-    1. Run the `auth` service so `/register` can redirect users for OAuth
+    1. Set up the [Auth service](/self-hosting/auth-service)
     2. Use the same value for `OAUTH_CONTEXT_SIGNING_SECRET` in both services
-    3. Set `AUTH_SERVICE_BASE_URL` to the origin of the auth service (for example `https://auth.example.com`)
+    3. Set `AUTH_SERVICE_BASE_URL` to the auth service origin, for example `https://auth.example.com`
     4. Start the bot after both services are configured and reachable
   </Accordion>
 </AccordionGroup>

@@ -1,291 +1,91 @@
 ---
 title: Environment Variables
-description: Complete reference of all environment variables used by Annie Mei
+description: Complete reference of the environment variables used by the Annie Mei bot and auth service.
 icon: key
 ---
 
 ## Overview
 
-Annie Mei is configured entirely through environment variables. This page documents all required and optional variables extracted from the source code.
-
-## Required Variables
-
-These environment variables **must** be set for Annie Mei to run.
-
-### Discord
-
-<ParamField path="DISCORD_TOKEN" type="string" required>
-  Discord bot token from the [Discord Developer Portal](https://discord.com/developers/applications).
-  
-  Used in: `src/main.rs:203`
-</ParamField>
-
-### Database
-
-<ParamField path="DATABASE_URL" type="string" required>
-  PostgreSQL connection string in the format:
-  
-  ```
-  postgres://user:password@host:port/database?sslmode=require
-  ```
-  
-  Used for storing user registrations and AniList account links.
-  
-  Defined in: `src/utils/statics.rs:17`
-</ParamField>
-
-### Cache
-
-<ParamField path="REDIS_URL" type="string" required>
-  Redis connection string for caching API responses.
-  
-  Format for standard Redis:
-  ```
-  redis://default:password@host:port
-  ```
-  
-  Format for Redis with TLS:
-  ```
-  rediss://default:password@host:port
-  ```
-  
-  Defined in: `src/utils/statics.rs:13`
-</ParamField>
-
-### Monitoring
-
-<ParamField path="SENTRY_DSN" type="string" required>
-  Sentry project DSN for error tracking and performance monitoring.
-  
-  Format:
-  ```
-  https://<key>@<org>.ingest.sentry.io/<project>
-  ```
-  
-  Used in: `src/main.rs:128`
-  
-  Defined in: `src/utils/statics.rs:10`
-</ParamField>
-
-<ParamField path="ENV" type="string" required>
-  Environment name for categorizing errors and logs in Sentry.
-  
-  Common values:
-  - `development`
-  - `staging`
-  - `production`
-  
-  Used in: `src/main.rs:127`
-  
-  Defined in: `src/utils/statics.rs:9`
-</ParamField>
-
-### External APIs
-
-<ParamField path="SPOTIFY_CLIENT_ID" type="string" required>
-  Spotify API client ID for theme song Spotify link lookups.
-  
-  Get from: [Spotify for Developers](https://developer.spotify.com/dashboard)
-  
-  Defined in: `src/utils/statics.rs:14`
-</ParamField>
-
-<ParamField path="SPOTIFY_CLIENT_SECRET" type="string" required>
-  Spotify API client secret.
-  
-  Defined in: `src/utils/statics.rs:15`
-</ParamField>
-
-<ParamField path="MAL_CLIENT_ID" type="string" required>
-  MyAnimeList API client ID for anime theme song lookups.
-  
-  Get from: [MyAnimeList API](https://myanimelist.net/apiconfig)
-  
-  Defined in: `src/utils/statics.rs:16`
-</ParamField>
-
-### OAuth / registration
-
-<ParamField path="AUTH_SERVICE_BASE_URL" type="string" required>
-  Base URL of the external auth service that handles the `/oauth/anilist/start` redirect.
-
-  Important:
-
-  - Must be a valid URL origin (example: `https://auth.example.com`)
-  - Do not include a path in this value
-
-  Defined in: `src/utils/statics.rs:23`
-</ParamField>
-
-<ParamField path="OAUTH_CONTEXT_SIGNING_SECRET" type="string" required>
-  Secret used to sign OAuth context payloads.
-
-  Must match the same environment variable in the `auth` service.
-
-  Defined in: `src/utils/statics.rs:24`
-</ParamField>
-
-### Privacy
-
-<ParamField path="USERID_HASH_SALT" type="string" required>
-  Salt used for hashing Discord user IDs before sending to Sentry.
-  
-  This ensures user privacy in logs while still allowing error correlation.
-  
-  **Important**: Keep this value secret and consistent across deployments.
-  
-  Defined in: `src/utils/statics.rs:18`
-</ParamField>
-
-## Optional Variables
-
-These variables have defaults or are optional.
-
-### Monitoring
-
-<ParamField path="SENTRY_TRACES_SAMPLE_RATE" type="float" default="0.0">
-  Percentage of traces to send to Sentry for performance monitoring.
-  
-  - **Range**: `0.0` to `1.0`
-  - **Default**: `0.0` (disabled)
-  - **Recommended for production**: `0.1` (10%)
-  
-  Invalid values will default to `0.0` with a warning.
-  
-  Used in: `src/main.rs:129-137`
-  
-  Defined in: `src/utils/statics.rs:11`
-</ParamField>
-
-### Server
-
-<ParamField path="SERVER_PORT" type="integer" default="8080">
-  Port for the HTTP health check server.
-  
-  The server provides endpoints for monitoring and load balancer health checks.
-  
-  Defined in: `src/utils/statics.rs:19-20`
-</ParamField>
-
-<ParamField path="OAUTH_CONTEXT_TTL_SECONDS" type="integer" default="300">
-  How long OAuth context tokens remain valid, in seconds.
-
-  Must be a positive integer. The bot uses this value when generating `/register` links.
-
-  Defined in: `src/utils/statics.rs:25`
-</ParamField>
-
-### AI / LLM
-
-<ParamField path="GEMINI_API_KEY" type="string">
-  Enables Gemini or another OpenAI-compatible provider configured through the built-in LLM client.
-
-  If this variable is missing, the bot can continue running without LLM features.
-
-  Defined in: `src/utils/statics.rs:28`
-</ParamField>
-
-<ParamField path="LLM_MODEL" type="string" default="gemini-2.0-flash">
-  Optional model override for the LLM client.
-
-  Defined in: `src/utils/statics.rs:29`
-</ParamField>
-
-<ParamField path="LLM_BASE_URL" type="string" default="https://generativelanguage.googleapis.com/v1beta/openai">
-  Optional base URL override for an OpenAI-compatible chat completions API.
-
-  Defined in: `src/utils/statics.rs:30`
-</ParamField>
-
-### Logging
-
-<ParamField path="RUST_LOG" type="string" default="info,serenity=warn">
-  Controls log level and filtering using the `tracing-subscriber` EnvFilter format.
-  
-  Examples:
-  - `debug` - Debug level for all modules
-  - `info,serenity=warn` - Info level, but warn for Serenity
-  - `annie_mei=trace` - Trace level for annie_mei module only
-  
-  Used in: `src/main.rs:176-177`
-</ParamField>
-
-## Variable Reference by Service
-
-### Discord Integration
-
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `DISCORD_TOKEN` | string | Yes | Bot authentication token |
-
-### Database (PostgreSQL)
-
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `DATABASE_URL` | string | Yes | PostgreSQL connection string |
-
-### Cache (Redis)
-
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `REDIS_URL` | string | Yes | Redis connection string |
-
-### External APIs
-
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `SPOTIFY_CLIENT_ID` | string | Yes | Spotify API client ID |
-| `SPOTIFY_CLIENT_SECRET` | string | Yes | Spotify API client secret |
-| `MAL_CLIENT_ID` | string | Yes | MyAnimeList API client ID |
-
-### Monitoring (Sentry)
-
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `SENTRY_DSN` | string | Yes | Sentry project DSN |
-| `ENV` | string | Yes | Environment name |
-| `SENTRY_TRACES_SAMPLE_RATE` | float | No | Trace sampling rate (0.0-1.0) |
-
-### Privacy
-
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `USERID_HASH_SALT` | string | Yes | Salt for hashing user IDs |
-
-### OAuth / registration
-
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `AUTH_SERVICE_BASE_URL` | string | Yes | Origin URL of auth service for OAuth start |
-| `OAUTH_CONTEXT_SIGNING_SECRET` | string | Yes | Shared secret for signing OAuth contexts |
-| `OAUTH_CONTEXT_TTL_SECONDS` | integer | No | OAuth context expiry seconds (default: 300) |
-
-### Server
-
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `SERVER_PORT` | integer | No | HTTP server port (default: 8080) |
-
-### AI / LLM
-
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
-| `GEMINI_API_KEY` | string | No | API key for Gemini or another compatible provider |
-| `LLM_MODEL` | string | No | Model override for the LLM client |
-| `LLM_BASE_URL` | string | No | Base URL override for an OpenAI-compatible API |
-
-## Example Configuration
-
-### Development
+Self-hosted Annie Mei has two env surfaces:
+
+- the main `annie-mei` bot service
+- the companion `auth` service for AniList OAuth
+
+Use this page as the source of truth when you build `.env` files for both services.
+
+## Shared values
+
+These values should stay aligned across the bot and auth service.
+
+| Variable | Required | Notes |
+|----------|----------|-------|
+| `OAUTH_CONTEXT_SIGNING_SECRET` | Yes | Must match so the auth service can validate the bot's signed OAuth context |
+| `USERID_HASH_SALT` | Yes | Keep this aligned if you want consistent hashed user identifiers in logs and Sentry |
+
+## Bot service
+
+### Required
+
+| Variable | Notes |
+|----------|-------|
+| `DISCORD_TOKEN` | Discord bot token |
+| `DATABASE_URL` | PostgreSQL connection string for the bot service |
+| `REDIS_URL` | Redis connection string |
+| `SPOTIFY_CLIENT_ID` | Spotify API client ID |
+| `SPOTIFY_CLIENT_SECRET` | Spotify API client secret |
+| `MAL_CLIENT_ID` | MyAnimeList API client ID |
+| `SENTRY_DSN` | Required by current bot startup |
+| `ENV` | Environment name such as `development`, `staging`, or `production` |
+| `AUTH_SERVICE_BASE_URL` | Auth service origin only, with no path |
+| `OAUTH_CONTEXT_SIGNING_SECRET` | Shared secret used to sign OAuth context payloads |
+| `USERID_HASH_SALT` | Salt for hashing Discord user IDs in logs |
+
+### Optional
+
+| Variable | Default | Notes |
+|----------|---------|-------|
+| `SENTRY_TRACES_SAMPLE_RATE` | `0.0` | Float from `0.0` to `1.0` |
+| `SERVER_PORT` | `8080` | Local HTTP health server port |
+| `OAUTH_CONTEXT_TTL_SECONDS` | `300` | Lifetime of `/register` OAuth links |
+| `GEMINI_API_KEY` | none | Enables Gemini or another compatible LLM provider |
+| `LLM_MODEL` | `gemini-2.0-flash` | Optional LLM model override |
+| `LLM_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta/openai` | Optional OpenAI-compatible base URL override |
+| `RUST_LOG` | `info,serenity=warn` | Tracing filter for local or production logging |
+
+## Auth service
+
+### Required
+
+| Variable | Notes |
+|----------|-------|
+| `ANILIST_CLIENT_ID` | AniList OAuth app client ID |
+| `ANILIST_CLIENT_SECRET` | AniList OAuth app client secret |
+| `ANILIST_REDIRECT_URI` | Must match the AniList app callback URL |
+| `DATABASE_URL` | PostgreSQL connection string for auth sessions and credentials |
+| `ROCKET_SECRET_KEY` | Rocket application secret |
+| `OAUTH_CONTEXT_SIGNING_SECRET` | Shared secret used to validate the bot's OAuth context |
+| `USERID_HASH_SALT` | Salt used for hashed user fingerprints in logs |
+
+### Optional
+
+| Variable | Default | Notes |
+|----------|---------|-------|
+| `OAUTH_CONTEXT_TTL_SECONDS` | `300` | Accepted age of signed OAuth context payloads |
+| `OAUTH_STATE_TTL_SECONDS` | `300` | Lifetime of the single-use AniList OAuth state value |
+| `SENTRY_DSN` | none | Enables Sentry in the auth service |
+| `SENTRY_ENVIRONMENT` | none | Environment label used by Sentry |
+| `SENTRY_TRACES_SAMPLE_RATE` | `0.0` | Float from `0.0` to `1.0` |
+
+## Example local configuration
+
+### Bot `.env`
 
 ```bash
 # Discord
-DISCORD_TOKEN=your_discord_token
+DISCORD_TOKEN=your_discord_bot_token
 
-# Database
-DATABASE_URL=postgres://user:password@localhost:5432/annie_mei
-
-# Cache
+# Storage
+DATABASE_URL=postgres://user:password@localhost/annie_mei
 REDIS_URL=redis://localhost:6379
 
 # External APIs
@@ -293,77 +93,47 @@ SPOTIFY_CLIENT_ID=your_spotify_client_id
 SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
 MAL_CLIENT_ID=your_mal_client_id
 
-# OAuth linking
-AUTH_SERVICE_BASE_URL=https://auth.example.com
-OAUTH_CONTEXT_SIGNING_SECRET=your_shared_oauth_context_signing_secret
-OAUTH_CONTEXT_TTL_SECONDS=300
-
 # Monitoring
 SENTRY_DSN=https://key@org.ingest.sentry.io/project
 ENV=development
 SENTRY_TRACES_SAMPLE_RATE=0.0
 
-# Privacy
-USERID_HASH_SALT=random_salt_value_keep_secret
+# Shared values
+USERID_HASH_SALT=generate_a_random_secret_value
+AUTH_SERVICE_BASE_URL=http://127.0.0.1:8000
+OAUTH_CONTEXT_SIGNING_SECRET=generate_a_random_secret_value
 
-# Server
+# Optional
+OAUTH_CONTEXT_TTL_SECONDS=300
 SERVER_PORT=8080
-
-# Logging
-RUST_LOG=debug,serenity=warn
-```
-
-### Production
-
-```bash
-# Discord
-DISCORD_TOKEN=your_discord_token
-
-# Database
-DATABASE_URL=postgres://user:password@db.example.com/annie_mei?sslmode=require
-
-# Cache
-REDIS_URL=rediss://default:password@redis.example.com:6379
-
-# External APIs
-SPOTIFY_CLIENT_ID=your_spotify_client_id
-SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
-MAL_CLIENT_ID=your_mal_client_id
-
-# Monitoring
-SENTRY_DSN=https://key@org.ingest.sentry.io/project
-ENV=production
-SENTRY_TRACES_SAMPLE_RATE=0.1
-
-# Privacy
-USERID_HASH_SALT=random_salt_value_keep_secret
-
-# Server
-SERVER_PORT=8080
-
-# Logging
 RUST_LOG=info,serenity=warn
 ```
 
-## Security Best Practices
+### Auth `auth/.env`
 
-1. **Never commit** `.env` files or environment variables to git
-2. **Use a secrets manager** if you need centralized secret handling in production
-3. **Rotate secrets regularly**, especially `DISCORD_TOKEN` and API credentials
-4. **Keep `USERID_HASH_SALT` consistent** across deployments to maintain log correlation
-5. **Use TLS connections** for database and Redis in production (`postgres://...?sslmode=require` and `rediss://`)
-6. **Restrict database access** to only the bot's IP address
-
-## Validation
-
-Annie Mei will panic on startup if required environment variables are missing:
-
-```rust
-Expected a token in the environment
-Expected a sentry dsn in the environment
-Expected an environment in the environment
-Failed to load OAuth context config
-"Expected an `AUTH_SERVICE_BASE_URL` environment variable" or equivalent missing/invalid OAuth value
+```bash
+ANILIST_CLIENT_ID=your_anilist_client_id
+ANILIST_CLIENT_SECRET=your_anilist_client_secret
+ANILIST_REDIRECT_URI=http://127.0.0.1:8000/oauth/anilist/callback
+DATABASE_URL=postgres://user:password@localhost/annie_mei_auth
+ROCKET_SECRET_KEY=generate_a_random_secret_key
+OAUTH_CONTEXT_SIGNING_SECRET=generate_a_random_secret_value
+USERID_HASH_SALT=generate_a_random_secret_value
+OAUTH_CONTEXT_TTL_SECONDS=300
+OAUTH_STATE_TTL_SECONDS=300
+SENTRY_DSN=
+SENTRY_ENVIRONMENT=development
+SENTRY_TRACES_SAMPLE_RATE=0.0
 ```
 
-Ensure all required variables are set before starting the bot.
+## Where these values are used
+
+- Bot service references come from `annie-mei/src/main.rs`, `annie-mei/src/server.rs`, and `annie-mei/src/utils/oauth.rs`
+- Auth service references come from `auth/src/main.rs`
+
+## Related pages
+
+- [Installation](/installation)
+- [Self-hosting architecture](/self-hosting/architecture)
+- [Bot service](/self-hosting/bot-service)
+- [Auth service](/self-hosting/auth-service)

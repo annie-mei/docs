@@ -1,10 +1,10 @@
 ---
 title: Installation
-description: Use the hosted Annie Mei bot or self-host it with Rust, PostgreSQL, and Redis.
+description: Use the hosted Annie Mei bot or self-host it with separate bot and auth services.
 icon: download
 ---
 
-# Installation Guide
+# Installation guide
 
 This guide covers both ways to get Annie Mei running:
 
@@ -27,228 +27,140 @@ After you add it, head to the [Quickstart Guide](/quickstart) to try the core sl
 
 Use this path if you want to run your own instance, change the code, or develop new features.
 
+Self-hosted Annie Mei now has two Rust services:
+
+| Service | Purpose | Required for |
+|---------|---------|--------------|
+| `annie-mei` bot service | Discord slash commands, AniList and theme song lookups, health endpoint | All bot features |
+| `auth` service | AniList OAuth start and callback flow, secure account linking | `/register` and new account links |
+
+If you want full feature parity with the hosted bot, run both services.
+
+<CardGroup cols={2}>
+  <Card title="Self-hosting architecture" icon="boxes" href="/self-hosting/architecture">
+    See how the bot service and auth service fit together.
+  </Card>
+  <Card title="Bot service" icon="bot" href="/self-hosting/bot-service">
+    Configure and run the main Discord bot process.
+  </Card>
+  <Card title="Auth service" icon="shield-check" href="/self-hosting/auth-service">
+    Configure and run the AniList OAuth companion service.
+  </Card>
+  <Card title="Environment Variables" icon="key" href="/deployment/environment-variables">
+    Review the current env surface for both services.
+  </Card>
+</CardGroup>
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
 
 - **Rust 1.94 or higher** - Install from [rustup.rs](https://rustup.rs/)
-- **PostgreSQL** - Any recent version (the bot uses Diesel ORM)
-- **Redis** - For caching API responses
+- **PostgreSQL** - The bot and auth service both need database access
+- **Redis** - The bot uses Redis for cached API responses
 - **Git** - To clone the repository
 
 <Note>
   Annie Mei uses the Rust 2024 edition. Make sure your Rust installation is up to date:
+
   ```bash
   rustup update
   ```
 </Note>
 
-## Environment Setup
+## What you need to configure
 
-Annie Mei requires several environment variables to function. You'll need accounts and API keys from the following services:
+Before you start the services, gather credentials for:
 
-### Required Services
+1. **Discord Bot Token** from the [Discord Developer Portal](https://discord.com/developers/applications)
+2. **Spotify API credentials** from [Spotify for Developers](https://developer.spotify.com/)
+3. **MyAnimeList API client ID** from [MyAnimeList API Config](https://myanimelist.net/apiconfig)
+4. **AniList OAuth app credentials** for the auth service
+5. **Sentry DSN** if you want production-style monitoring
 
-1. **Discord Bot Token** - Create a bot at the [Discord Developer Portal](https://discord.com/developers/applications)
-2. **Sentry DSN** - The current app startup expects `SENTRY_DSN` to be set
-3. **Spotify API Credentials** - Register an application at [Spotify for Developers](https://developer.spotify.com/)
-4. **MyAnimeList API Client ID** - Register an application at [MyAnimeList API Config](https://myanimelist.net/apiconfig)
-
-### Environment Variables
-
-Create a `.env` file in the project root with the following variables:
-
-```bash
-# Discord
-DISCORD_TOKEN=your_discord_bot_token
-
-# Database
-DATABASE_URL=postgresql://username:password@localhost/annie_mei
-
-# Cache
-REDIS_URL=redis://localhost:6379
-
-# Spotify API
-SPOTIFY_CLIENT_ID=your_spotify_client_id
-SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
-
-# MyAnimeList API
-MAL_CLIENT_ID=your_mal_client_id
-
-# Error Tracking
-SENTRY_DSN=your_sentry_dsn
-SENTRY_TRACES_SAMPLE_RATE=0.1
-
-# Environment
-ENV=development
-
-# Privacy
-USERID_HASH_SALT=generate_a_random_secret_value
-
-# Optional health server port
-SERVER_PORT=8080
-```
+Both services also need PostgreSQL access. The bot needs Redis. See [Environment Variables](/deployment/environment-variables) for the full reference.
 
 <Warning>
   Never commit your `.env` file to version control. Add it to `.gitignore` to keep your credentials safe.
 </Warning>
 
-## Installation Steps
+## Self-host checklist
 
 <Steps>
-  <Step title="Clone the Repository">
-    Clone the Annie Mei repository from GitHub:
-    
+  <Step title="Clone the repository">
     ```bash
     git clone https://github.com/annie-mei/annie-mei.git
     cd annie-mei
     ```
   </Step>
-  
-  <Step title="Create the Database">
-    Create the PostgreSQL database:
-    
+
+  <Step title="Prepare PostgreSQL and Redis">
+    Create the database resources your deployment will use.
+
     ```bash
     createdb annie_mei
+    createdb annie_mei_auth
     ```
-    
+
     <Note>
-      Annie Mei runs its embedded Diesel migrations automatically on startup. You only need Diesel CLI if you want to create or run migrations manually during development.
+      The bot and auth service each run their own migrations on startup. The bot also needs Redis before `cargo run` succeeds.
     </Note>
   </Step>
-  
-  <Step title="Build the Project">
-    Build Annie Mei in release mode for optimal performance:
-    
+
+  <Step title="Configure the bot service">
+    Create the bot `.env` file in the repo root and set the current bot variables.
+
     ```bash
-    cargo build --release
+    touch .env
     ```
-    
-    This will compile the project with optimizations. The first build may take several minutes as it compiles all dependencies.
-    
+
     <Note>
-      For development, you can use `cargo build` without the `--release` flag for faster compilation times.
+      The bot now requires `AUTH_SERVICE_BASE_URL` and `OAUTH_CONTEXT_SIGNING_SECRET` at startup. Use [Bot service](/self-hosting/bot-service) for the exact setup.
     </Note>
   </Step>
-  
-  <Step title="Run the Bot">
-    Start the bot:
-    
+
+  <Step title="Configure the auth service">
+    Set up `auth/.env`, your AniList OAuth app, and the shared OAuth secrets.
+
     ```bash
-    cargo run --release
+    cd auth
+    cp .env.example .env
     ```
-    
-    You should see log output indicating the bot is connecting to Discord and registering slash commands.
-    
-    The bot will:
-    - Connect to PostgreSQL and run any pending migrations
-    - Connect to Redis for caching
-    - Connect to Discord and register global slash commands
-    - Start listening for interactions
+
+    Use [Auth service](/self-hosting/auth-service) for the exact setup.
   </Step>
-  
-  <Step title="Verify Installation">
-    Test the bot by running a command in Discord:
-    
+
+  <Step title="Run both services">
+    Start the auth service and the bot service in separate terminals.
+
+    ```text
+    terminal 1: cd auth && cargo run
+    terminal 2: cargo run
+    ```
+
+    The local defaults are `http://127.0.0.1:8000` for the auth service and `http://127.0.0.1:8080/healthz` for the bot health endpoint.
+  </Step>
+
+  <Step title="Verify the stack">
+    Test the core flows in Discord:
+
     ```text
     /ping
+    /register
+    /whoami
     ```
-    
-    If you receive a greeting from Annie Mei, your installation is successful.
+
+    `/register` should open the auth service flow in your browser, and `/whoami` should show the linked AniList account after the callback finishes.
   </Step>
 </Steps>
 
-## Development Workflow
+## Where to go next
 
-If you're planning to contribute or modify Annie Mei:
+- Use [Self-hosting architecture](/self-hosting/architecture) to understand the service split
+- Use [Bot service](/self-hosting/bot-service) for the main process setup
+- Use [Auth service](/self-hosting/auth-service) for AniList OAuth setup
+- Use [Environment Variables](/deployment/environment-variables) for the current config reference
 
-### Quick Type Checking
-
-```bash
-cargo check
-```
-
-Runs fast type checking without producing binaries.
-
-### Code Formatting
-
-```bash
-cargo fmt
-```
-
-Formats code according to Rust style guidelines.
-
-### Linting
-
-```bash
-cargo clippy
-```
-
-Runs the Clippy linter to catch common mistakes and suggest improvements.
-
-### Running Tests
-
-```bash
-cargo test
-```
-
-Executes the test suite.
-
-### Database Migrations
-
-To create a new migration during development:
-
-```bash
-cargo install diesel_cli --no-default-features --features postgres
-diesel migration generate migration_name
-```
-
-This creates `up.sql` and `down.sql` files in the migrations directory.
-
-<Warning>
-  Never manually edit `src/schema.rs` - it's auto-generated by Diesel when you run migrations.
-</Warning>
-
-## Production Deployment
-
-For production deployments:
-
-1. **Use release builds** - Always compile with `--release` for performance
-2. **Set appropriate log levels** - Use the `RUST_LOG` environment variable
-3. **Configure Sentry** - Set `SENTRY_DSN` and `SENTRY_TRACES_SAMPLE_RATE` for error tracking
-4. **Use managed services** - Consider hosted PostgreSQL (e.g., Neon) and Redis (e.g., Upstash) for reliability
-5. **Enable TLS** - Ensure Redis and PostgreSQL connections use TLS in production
-
-### Recommended Environment Variables for Production
-
-```bash
-ENV=production
-RUST_LOG=info,serenity=warn
-SENTRY_TRACES_SAMPLE_RATE=0.1
-```
-
-## Troubleshooting
-
-### Connection Issues
-
-- **Database connection fails**: Verify PostgreSQL is running and `DATABASE_URL` is correct
-- **Redis connection fails**: Verify Redis is running and `REDIS_URL` is correct
-- **Discord connection fails**: Check your `DISCORD_TOKEN` is valid and the bot is enabled in the Developer Portal
-
-### Build Issues
-
-- **OpenSSL errors**: The project uses vendored OpenSSL. If you encounter issues, ensure you have build tools installed
-- **Diesel schema errors**: Run `diesel migration run` to regenerate the schema
-
-### Runtime Issues
-
-- **Commands not appearing**: Global commands can take up to an hour to propagate. For development, consider using guild-specific commands
-- **Slow responses**: Check your Redis cache is working - the bot caches API responses for performance
-
-<Note>
-  For more detailed troubleshooting and community support, check the GitHub repository's issues page.
-</Note>
-
-## Next Steps
+## Next steps
 
 Now that you have Annie Mei running, check out the [Quickstart Guide](/quickstart) to learn about all available commands and features.

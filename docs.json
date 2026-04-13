@@ -58,18 +58,27 @@
           "installation"
         ]
       },
-        {
-          "group": "Commands",
-          "pages": [
-            "commands/overview",
-            "commands/anime",
-            "commands/manga",
-            "commands/songs",
-            "commands/register",
-            "commands/whoami",
-            "commands/help"
-          ]
-        },
+      {
+        "group": "Self-hosting",
+        "pages": [
+          "self-hosting/architecture",
+          "self-hosting/bot-service",
+          "self-hosting/auth-service",
+          "deployment/environment-variables"
+        ]
+      },
+      {
+        "group": "Commands",
+        "pages": [
+          "commands/overview",
+          "commands/anime",
+          "commands/manga",
+          "commands/songs",
+          "commands/register",
+          "commands/whoami",
+          "commands/help"
+        ]
+      },
       {
         "group": "Development",
         "pages": [
@@ -84,7 +93,6 @@
         "group": "Deployment",
         "pages": [
           "deployment/configuration",
-          "deployment/environment-variables",
           "deployment/infrastructure"
         ]
       },
