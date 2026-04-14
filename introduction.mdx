@@ -6,11 +6,13 @@ mode: custom
 ---
 
 <div className="flex flex-col items-center text-center py-16 px-4">
-  <img
-    src="/mei.jpg"
-    alt="Annie Mei character"
-    className="w-32 h-32 rounded-full mb-6 shadow-lg"
-  />
+  <div className="w-32 h-32 rounded-full overflow-hidden mb-6 shadow-lg">
+    <img
+      src="/mei.jpg"
+      alt="Annie Mei character"
+      className="w-full h-full object-cover"
+    />
+  </div>
   <h1 className="text-5xl font-bold mb-4">Annie Mei</h1>
   <p className="text-xl text-[#797593] dark:text-[#908caa] max-w-2xl mb-8">
     A Discord bot written in Rust that brings anime and manga information from AniList directly to your server, with theme song lookups via Spotify.
