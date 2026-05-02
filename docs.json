@@ -35,6 +35,8 @@
   },
   "navbar": {
     "links": [
+      { "label": "Terms", "href": "/legal/terms-of-service" },
+      { "label": "Privacy", "href": "/legal/privacy-policy" },
       { "type": "github", "href": "https://github.com/annie-mei/annie-mei" }
     ],
     "primary": {
@@ -77,6 +79,13 @@
           "commands/register",
           "commands/whoami",
           "commands/help"
+        ]
+      },
+      {
+        "group": "Legal",
+        "pages": [
+          "legal/terms-of-service",
+          "legal/privacy-policy"
         ]
       },
       {
