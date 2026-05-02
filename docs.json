@@ -37,7 +37,7 @@
     "links": [
       { "label": "Terms", "href": "/legal/terms-of-service", "icon": "file-text" },
       { "label": "Privacy", "href": "/legal/privacy-policy", "icon": "shield" },
-      { "type": "github", "href": "https://github.com/annie-mei/annie-mei" },
+      { "label": "GitHub", "href": "https://github.com/annie-mei/annie-mei", "icon": "github" },
       { "label": "Add to Discord", "href": "https://discord.com/oauth2/authorize?client_id=962106280430932079&permissions=388160&scope=bot", "icon": "bot" }
     ]
   },
