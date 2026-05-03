@@ -1,0 +1,117 @@
+---
+title: /unregister
+description: Unlink your AniList account from Annie Mei
+icon: user-minus
+---
+
+## Overview
+
+The `/unregister` command removes your linked AniList account from Annie Mei and deletes any stored OAuth credentials and session data associated with your Discord profile.
+
+## Command syntax
+
+```text
+/unregister confirmation:<confirm|cancel>
+```
+
+## Parameters
+
+<ParamField path="confirmation" type="string" required>
+  Confirm whether to unlink your AniList account
+  - `Confirm unlink` — permanently removes the link and deletes stored OAuth data
+  - `Cancel` — aborts the operation with no changes
+</ParamField>
+
+## Usage examples
+
+```text
+/unregister confirmation:Confirm unlink
+```
+
+## Response messages
+
+<ResponseField name="Unlinked">
+  ```text
+  Your AniList account **Username** has been unlinked from Annie Mei, and stored OAuth credentials have been deleted.
+  ```
+  Your bot profile link and OAuth records were successfully removed.
+</ResponseField>
+
+<ResponseField name="Auth credentials only">
+  ```text
+  Your stored AniList OAuth credentials have been deleted. You do not have a bot profile link.
+  ```
+  OAuth data was cleaned up, but no bot profile link existed.
+</ResponseField>
+
+<ResponseField name="Not linked">
+  ```text
+  You do not have a linked AniList account or stored AniList OAuth credentials. Run `/register` if you want to link one.
+  ```
+  Nothing to unlink. Use `/register` to start the linking flow.
+</ResponseField>
+
+<ResponseField name="Cancelled">
+  ```text
+  Cancelled. Your AniList account link was not changed.
+  ```
+  You chose **Cancel** — no data was deleted.
+</ResponseField>
+
+<ResponseField name="Failed">
+  ```text
+  I hit an internal error while unlinking your AniList account. Please try again later.
+  ```
+  A database or server error occurred. Retry after a short delay.
+</ResponseField>
+
+## What gets deleted
+
+When you confirm unlinking, Annie Mei deletes the following data in a single transaction:
+
+<CardGroup cols={2}>
+  <Card title="Bot profile link" icon="link">
+    Your Discord-to-AniList mapping stored in the bot database
+  </Card>
+  <Card title="OAuth credentials" icon="key">
+    Stored AniList OAuth tokens in the auth service
+  </Card>
+  <Card title="OAuth sessions" icon="clock">
+    Any active or expired OAuth session state
+  </Card>
+</CardGroup>
+
+<Note>
+  This does **not** delete your AniList account or affect your AniList data. It only removes the link between your Discord identity and Annie Mei.
+</Note>
+
+## When to use `/unregister`
+
+- You want Annie Mei to stop showing your AniList status in server lookups
+- You are switching to a different AniList account and want to clear the old link first
+- You want to remove all stored OAuth credentials from Annie Mei services
+
+After unregistering, you can run `/register` again at any time to link a new or the same AniList account.
+
+## Source code reference
+
+Implementation: `src/commands/unregister.rs:33`
+
+The `register()` function defines the command structure:
+
+```rust
+pub fn register() -> CreateCommand {
+    CreateCommand::new("unregister")
+        .description("Unlink your AniList account from Annie Mei")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "confirmation",
+                "Confirm whether to unlink your AniList account",
+            )
+            .add_string_choice("Confirm unlink", "confirm")
+            .add_string_choice("Cancel", "cancel")
+            .required(true),
+        )
+}
+```
