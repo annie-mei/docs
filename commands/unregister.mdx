@@ -32,21 +32,14 @@ The `/unregister` command removes your linked AniList account from Annie Mei and
 
 <ResponseField name="Unlinked">
   ```text
-  Your AniList account **Username** has been unlinked from Annie Mei, and stored OAuth credentials have been deleted.
+  Your AniList account has been unlinked from Annie Mei and your stored OAuth credentials have been deleted.
   ```
-  Your bot profile link and OAuth records were successfully removed.
-</ResponseField>
-
-<ResponseField name="Auth credentials only">
-  ```text
-  Your stored AniList OAuth credentials have been deleted. You do not have a bot profile link.
-  ```
-  OAuth data was cleaned up, but no bot profile link existed.
+  Your OAuth credentials and any session state were successfully removed.
 </ResponseField>
 
 <ResponseField name="Not linked">
   ```text
-  You do not have a linked AniList account or stored AniList OAuth credentials. Run `/register` if you want to link one.
+  You do not have a linked AniList account. Run `/register` if you want to link one.
   ```
   Nothing to unlink. Use `/register` to start the linking flow.
 </ResponseField>
@@ -70,14 +63,11 @@ The `/unregister` command removes your linked AniList account from Annie Mei and
 When you confirm unlinking, Annie Mei deletes the following data in a single transaction:
 
 <CardGroup cols={2}>
-  <Card title="Bot profile link" icon="link">
-    Your Discord-to-AniList mapping stored in the bot database
-  </Card>
   <Card title="OAuth credentials" icon="key">
     Stored AniList OAuth tokens in the auth service
   </Card>
   <Card title="OAuth sessions" icon="clock">
-    Any active or expired OAuth session state
+    Any active or expired OAuth session state, including in-flight flows that never completed
   </Card>
 </CardGroup>
 
@@ -95,7 +85,7 @@ After unregistering, you can run `/register` again at any time to link a new or 
 
 ## Source code reference
 
-Implementation: `src/commands/unregister.rs:33`
+Implementation: `src/commands/unregister.rs:29`
 
 The `register()` function defines the command structure:
 
