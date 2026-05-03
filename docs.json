@@ -72,7 +72,9 @@
           "commands/anime",
           "commands/manga",
           "commands/songs",
+          "commands/character",
           "commands/register",
+          "commands/unregister",
           "commands/whoami",
           "commands/help"
         ]

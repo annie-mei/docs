@@ -20,11 +20,11 @@ No parameters are required.
 
 <ResponseField name="Linked account">
   ```text
-  Your linked AniList account is **AnimeName**.
-  Profile: <https://anilist.co/user/AnimeName>
+  Your linked AniList account ID is **4567**.
+  Profile: <https://anilist.co/user/4567/>
   ```
 
-  You see the username and profile URL that was stored when you completed `/register`.
+  You see the AniList ID and profile URL from your OAuth-linked account. The auth service stores your AniList ID, not your username, so `/whoami` displays the numeric ID.
 </ResponseField>
 
 <ResponseField name="Not linked yet">
@@ -53,9 +53,9 @@ Use it to verify that `/register` completed and stored your account for guild-aw
 
 ## Source code reference
 
-Implementation: `src/commands/whoami.rs:29`
+Implementation: `src/commands/whoami.rs:23`
 
-`whoami()` defines the slash command, and `handle_whoami()` builds the response.
+`register()` defines the slash command, and `handle_whoami()` builds the response from `oauth_credentials`, the auth-service-owned source of truth for AniList account links.
 
 <Tip>
   If `/whoami` returns the default message, run `/register` again and complete the OAuth flow.

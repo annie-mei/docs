@@ -1,0 +1,134 @@
+---
+title: /character
+description: Fetch character details from AniList
+icon: user
+---
+
+## Overview
+
+The `/character` command fetches detailed character information from AniList, including names, biographical data, appearances, and descriptions.
+
+## Command syntax
+
+```text
+/character search:<AniList ID or search term> spoilers:<allow|disallow>
+```
+
+## Parameters
+
+<ParamField path="search" type="string" required>
+  AniList ID (numeric) or search term (character name in any language)
+</ParamField>
+
+<ParamField path="spoilers" type="string" required>
+  Whether to include spoiler aliases and spoiler description content
+  - `allow` — includes spoiler aliases and reveals spoiler-tagged description text
+  - `disallow` — hides spoiler aliases and strips spoiler-tagged description content
+</ParamField>
+
+## Usage examples
+
+<Tabs>
+  <Tab title="By AniList ID">
+    ```text
+    /character search:40 spoilers:disallow
+    ```
+    Returns **Lelouch Lamperouge** using the exact AniList character ID.
+  </Tab>
+  <Tab title="By name">
+    ```text
+    /character search:Lelouch spoilers:disallow
+    ```
+    Searches for "Lelouch" and returns the best match.
+  </Tab>
+  <Tab title="With spoilers allowed">
+    ```text
+    /character search:Joy Boy spoilers:allow
+    ```
+    Returns the character with spoiler aliases and description content visible.
+  </Tab>
+</Tabs>
+
+## Response data
+
+The bot returns a rich embed with the following information:
+
+<ResponseField name="Name">
+  Primary name, native name, and alternative aliases
+</ResponseField>
+
+<ResponseField name="Description">
+  Character biography converted from AniList HTML. Spoiler-tagged sections are stripped when `spoilers:disallow` is chosen.
+</ResponseField>
+
+<ResponseField name="Image">
+  Character portrait thumbnail from AniList
+</ResponseField>
+
+<ResponseField name="Biographical data">
+  - **Gender**
+  - **Age**
+  - **Birthday** (year, month, day — partial dates display what is available)
+  - **Blood Type**
+  - **Favourites**: AniList community favourite count
+</ResponseField>
+
+<ResponseField name="Appears In">
+  List of anime and manga the character appears in, with links to AniList pages
+</ResponseField>
+
+<ResponseField name="AniList URL">
+  Direct link to the character's AniList page
+</ResponseField>
+
+import { SearchNoResults } from '/snippets/search-no-results.mdx';
+import { NsfwWarning } from '/snippets/search-nsfw-warning.mdx';
+
+## Search tips
+
+<NsfwWarning />
+
+<Tip>
+  **AniList IDs are the most reliable way to search.** Find the ID in the URL:
+
+  `https://anilist.co/character/40` → Use `/character search:40`
+</Tip>
+
+<AccordionGroup>
+  <SearchNoResults mediaType="character" extra='Searching with fewer words or the full canonical name' />
+
+  <Accordion title="Spoiler control">
+    Choose `spoilers:allow` when you want to see hidden aliases and description spoilers (for example, post-plot-twist identities). Choose `spoilers:disallow` for a spoiler-free result.
+  </Accordion>
+</AccordionGroup>
+
+## Source code reference
+
+Implementation: `src/commands/character/command.rs:27`
+
+The `register()` function defines the command structure:
+
+```rust
+pub fn register() -> CreateCommand {
+    CreateCommand::new("character")
+        .description("Fetches the details for an AniList character")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "search",
+                "AniList character ID or search term",
+            )
+            .required(true),
+        )
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "spoilers",
+                "Whether to include spoiler aliases and spoiler description content",
+            )
+            .add_string_choice("Allow", "allow")
+            .add_string_choice("Disallow", "disallow")
+            .required(true),
+        )
+}
+```

@@ -65,7 +65,7 @@ Once linked, Annie Mei can display your AniList status in guild lookups for medi
 
 <Steps>
   <Step title="Profile data stored">
-    Your Discord ID is stored with your AniList user ID and AniList username.
+    Your Discord ID is stored with your AniList user ID in the auth service.
   </Step>
 
   <Step title="Guild status is enabled">
@@ -79,7 +79,7 @@ Once linked, Annie Mei can display your AniList status in guild lookups for medi
 
 ## Privacy and data storage
 
-Annie Mei stores the following account-link data when linked:
+The auth service stores the following account-link data when linked:
 
 <CardGroup cols={2}>
   <Card title="Discord User ID" icon="discord">
@@ -88,12 +88,9 @@ Annie Mei stores the following account-link data when linked:
   <Card title="AniList User ID" icon="hashtag">
     Numeric AniList user ID
   </Card>
-  <Card title="AniList Username" icon="user">
-    Current public AniList username
-  </Card>
 </CardGroup>
 
-The auth service also stores AniList OAuth credentials and short-lived OAuth session state needed to complete and maintain the link.
+The auth service also stores AniList OAuth credentials (access and refresh tokens) and short-lived OAuth session state needed to complete and maintain the link. The bot does not store your AniList username — `/whoami` displays your numeric AniList ID instead.
 
 The bot does not store:
 
@@ -105,13 +102,7 @@ Review the [Privacy Policy](/legal/privacy-policy) for the full data handling an
 
 ## Unlink your AniList account
 
-Use `/unregister` when you want to remove your AniList account link from Annie Mei.
-
-```text
-/unregister confirmation:Confirm unlink
-```
-
-This deletes the bot profile link and active stored AniList OAuth credentials associated with your Discord account. Choose `Cancel` for the confirmation option if you do not want to unlink.
+Use [`/unregister`](/commands/unregister) when you want to remove your AniList account link from Annie Mei. See the [`/unregister` documentation](/commands/unregister) for confirmation options and details on what data is deleted.
 
 ## Troubleshooting
 
