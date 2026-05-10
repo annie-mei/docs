@@ -45,7 +45,6 @@ These values should stay aligned across the bot and auth service.
 | Variable | Default | Notes |
 |----------|---------|-------|
 | `SENTRY_TRACES_SAMPLE_RATE` | `0.0` | Float from `0.0` to `1.0` |
-| `SERVER_PORT` | `8080` | Local HTTP health server port |
 | `OAUTH_CONTEXT_TTL_SECONDS` | `300` | Lifetime of `/register` OAuth links |
 | `GEMINI_API_KEY` | none | Enables Gemini or another compatible LLM provider |
 | `LLM_MODEL` | `gemini-2.0-flash` | Optional LLM model override |
@@ -105,7 +104,6 @@ OAUTH_CONTEXT_SIGNING_SECRET=generate_a_random_secret_value
 
 # Optional
 OAUTH_CONTEXT_TTL_SECONDS=300
-SERVER_PORT=8080
 RUST_LOG=info,serenity=warn
 ```
 
@@ -128,8 +126,8 @@ SENTRY_TRACES_SAMPLE_RATE=0.0
 
 ## Where these values are used
 
-- Bot service references come from `annie-mei/src/main.rs`, `annie-mei/src/server.rs`, and `annie-mei/src/utils/oauth.rs`
-- Auth service references come from `auth/src/main.rs`
+- Bot service references come from `annie-mei/src/main.rs` and `annie-mei/src/utils/oauth.rs`
+- Auth service references come from `auth/src/main.rs` and `auth/src/routes/healthz.rs`
 
 ## Related pages
 

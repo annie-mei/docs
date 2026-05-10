@@ -241,20 +241,14 @@ The current production deployment uses Oracle Cloud ARM64 VMs and GitHub Actions
 
 ### Health Checks
 
-Annie Mei runs an HTTP server on port 8080 (configurable via `SERVER_PORT`) for health checks:
+The auth service owns HTTP health checks for the stack:
 
 ```bash
-curl http://127.0.0.1:8080/healthz
+curl http://127.0.0.1:8000/healthz
+curl http://127.0.0.1:8000/readyz
 ```
 
-Use this endpoint for:
-- Load balancer health checks
-- Monitoring systems
-- Deployment verification
-
-<Note>
-  The built-in health server listens on `127.0.0.1`, not `0.0.0.0`. If you want remote health checks, put a reverse proxy or SSH tunnel in front of it.
-</Note>
+Use `/healthz` for liveness and `/readyz` for dependency-aware readiness in load balancers, monitoring systems, and deployment verification. The Discord bot process does not expose an HTTP health server.
 
 ## CI/CD: GitHub Actions
 

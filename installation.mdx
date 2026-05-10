@@ -138,7 +138,7 @@ Both services also need PostgreSQL access. The bot needs Redis. See [Environment
     terminal 2: cargo run
     ```
 
-    The local defaults are `http://127.0.0.1:8000` for the auth service and `http://127.0.0.1:8080/healthz` for the bot health endpoint.
+    The local default is `http://127.0.0.1:8000` for the auth service. Use `http://127.0.0.1:8000/healthz` for liveness and `http://127.0.0.1:8000/readyz` for readiness.
   </Step>
 
   <Step title="Verify the stack">

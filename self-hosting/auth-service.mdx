@@ -18,7 +18,7 @@ The auth service:
 - handles the AniList callback
 - exchanges the auth code for AniList tokens
 - fetches the AniList viewer ID and stores the linked credentials
-- serves `GET /healthz`
+- serves `GET /healthz` for liveness and `GET /readyz` for database readiness
 
 ## Before you start
 
@@ -80,9 +80,10 @@ SENTRY_TRACES_SAMPLE_RATE=0.0
     On startup, the service connects to PostgreSQL, runs SQLx migrations, and serves the AniList OAuth routes.
   </Step>
 
-  <Step title="Verify the health endpoint">
+  <Step title="Verify the health endpoints">
     ```bash
     curl http://127.0.0.1:8000/healthz
+    curl http://127.0.0.1:8000/readyz
     ```
   </Step>
 </Steps>
