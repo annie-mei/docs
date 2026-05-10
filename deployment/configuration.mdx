@@ -169,40 +169,31 @@ To look up a user's hashed ID in Sentry logs:
 
 ## Server Configuration
 
-### HTTP Health Check Server
+### HTTP Health and Readiness
 
-Annie Mei runs an HTTP health check server on port 8080 by default (configurable via `SERVER_PORT`):
+The Discord bot does not expose an HTTP listener. Operational health checks should target the auth service instead:
 
-```bash
-SERVER_PORT=8080  # Default port
-```
+- `GET /healthz` - process liveness, no dependency checks
+- `GET /readyz` - readiness, including PostgreSQL connectivity
 
-The server provides a `/healthz` endpoint that monitors the health of Redis and PostgreSQL connections. It binds to `127.0.0.1`, so expose it through your own reverse proxy or local monitoring if you need external checks.
-
-**Endpoint**: `GET /healthz`
-
-**Response (healthy)**:
+**Response (ready)**:
 ```json
 {
   "status": "healthy",
-  "version": "2.15.0",
+  "version": "1.2.0",
   "services": {
-    "redis": "up",
     "database": "up"
   }
 }
 ```
 
 **HTTP Status Codes**:
-- `200 OK` - All services healthy
-- `503 Service Unavailable` - One or more services down
+- `200 OK` - The auth service is live or ready, depending on endpoint
+- `503 Service Unavailable` - The readiness dependency check failed
 
-This endpoint is useful for:
-- Load balancer health checks
-- Monitoring and alerting systems
-- Verifying deployment success
+Use these endpoints for load balancer checks, monitoring, alerting, and deployment verification.
 
-Defined in: `src/server.rs:14-61`
+Defined in: `auth/src/routes/healthz.rs`
 
 ## Validation
 
@@ -212,8 +203,9 @@ Before deploying, validate your configuration:
 # Start the bot with your production-style environment
 RUST_LOG=debug ./annie-mei
 
-# Check the local health endpoint after startup
-curl http://127.0.0.1:8080/healthz
+# Check auth service liveness/readiness after startup
+curl http://127.0.0.1:8000/healthz
+curl http://127.0.0.1:8000/readyz
 
 # Verify the hash helper still works
 ./annie-mei hash 123456789012345678

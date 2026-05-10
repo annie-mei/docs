@@ -14,8 +14,9 @@ The bot service:
 - handles `/ping`, `/help`, `/anime`, `/manga`, `/songs`, `/register`, and `/whoami`
 - connects to PostgreSQL and runs embedded Diesel migrations on startup
 - connects to Redis for API response caching
-- serves `GET /healthz` on the local HTTP server
 - builds the AniList OAuth start link that sends members to the auth service
+
+The bot no longer exposes an HTTP listener; stack liveness and readiness are served by the auth service.
 
 ## Required dependencies
 
@@ -63,7 +64,6 @@ OAUTH_CONTEXT_SIGNING_SECRET=generate_a_random_secret_value
 
 # Optional
 OAUTH_CONTEXT_TTL_SECONDS=300
-SERVER_PORT=8080
 RUST_LOG=info,serenity=warn
 ```
 
@@ -87,13 +87,7 @@ Use [Environment Variables](/deployment/environment-variables) for the full bot 
     cargo run
     ```
 
-    On startup, the bot will connect to PostgreSQL, run migrations, load OAuth configuration, register slash commands, and start the local health server.
-  </Step>
-
-  <Step title="Verify the health endpoint">
-    ```bash
-    curl http://127.0.0.1:8080/healthz
-    ```
+    On startup, the bot will connect to PostgreSQL, run migrations, load OAuth configuration, and register slash commands.
   </Step>
 </Steps>
 
