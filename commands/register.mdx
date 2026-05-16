@@ -90,7 +90,7 @@ The auth service stores the following account-link data when linked:
   </Card>
 </CardGroup>
 
-The auth service also stores AniList OAuth credentials (access and refresh tokens) and short-lived OAuth session state needed to complete and maintain the link. The bot does not store your AniList username — `/whoami` displays your numeric AniList ID instead.
+The auth service also stores AniList OAuth credentials (access and refresh tokens), the AniList username, and short-lived OAuth session state needed to complete and maintain the link. When you run `/whoami`, the bot displays your AniList username if available and falls back to your numeric AniList ID.
 
 The bot does not store:
 

@@ -1,0 +1,133 @@
+---
+title: /search
+description: Find anime or manga from a natural-language description
+icon: search
+---
+
+## Overview
+
+The `/search` command lets you find anime or manga using a natural-language description. Instead of knowing the exact title, describe what you're looking for and the bot will try to match it.
+
+<Note>
+  `/search` uses an LLM (large language model) to interpret your query. If the LLM service is unavailable, the bot falls back to a raw text search.
+</Note>
+
+## Command syntax
+
+```text
+/search query:<description of what you want to find>
+```
+
+## Parameters
+
+<ParamField path="query" type="string" required>
+  A natural-language description of the anime or manga you're looking for. Examples: "the one with the kid who wants to be king of the pirates", "isekai with a female lead who uses books as weapons"
+</ParamField>
+
+## Usage examples
+
+<Tabs>
+  <Tab title="Natural language">
+    ```text
+    /search query:the anime where a kid eats a stretchy fruit and sails the seas
+    ```
+    The bot interprets your description and searches for the best match.
+  </Tab>
+  <Tab title="With media type hint">
+    ```text
+    /search query:a manga about a boy who turns into a cat
+    ```
+    Including words like "manga", "manhwa", "anime", or "movie" helps the bot narrow the search.
+  </Tab>
+</Tabs>
+
+## How it works
+
+<Steps>
+  <Step title="Parse your query">
+    The bot sends your description to the LLM, which extracts a structured search intent: media type (anime, manga, or unknown) and a normalized search term. If the LLM is unavailable, the bot uses your raw query as a fallback.
+  </Step>
+  <Step title="Search AniList">
+    The bot searches AniList using the parsed term. If the media type is "unknown", it tries anime first, then manga, until it finds a match.
+  </Step>
+  <Step title="Return results">
+    The bot shows an embed with the same details as `/anime` or `/manga`, along with an interpretation line like "I think you're thinking of the anime `One Piece`."
+  </Step>
+</Steps>
+
+## Response data
+
+The bot returns the same rich embed as `/anime` or `/manga`, depending on what it finds, plus an interpretation message telling you what it searched for.
+
+<ResponseField name="Interpretation">
+  A short message like "I think you're thinking of the anime `One Piece`." or "I think you're thinking of `Dandadan`."
+</ResponseField>
+
+<ResponseField name="Anime or manga embed">
+  Same fields as `/anime` or `/manga` — title, metadata, genres, description, links, and guild data when available.
+</ResponseField>
+
+import { SearchNoResults } from '/snippets/search-no-results.mdx';
+import { NsfwWarning } from '/snippets/search-nsfw-warning.mdx';
+
+## Search tips
+
+<NsfwWarning />
+
+<Tip>
+  **Be descriptive.** The more context you give, the better the LLM can find the right match. Phrases like "the anime with the titanium swords" or "manga about a detective who can kill with a notebook" work well.
+</Tip>
+
+<AccordionGroup>
+  <SearchNoResults mediaType="anime or manga" extra='Trying fewer words or a more specific detail from the story' />
+
+  <Accordion title="Media type hints">
+    Include media type keywords to guide the search:
+
+    | Keyword | Interpreted as |
+    |---------|---------------|
+    | "anime", "movie", "ova", "tv show", "series" | Anime |
+    | "manga", "manhwa", "manhua", "novel", "comic" | Manga |
+    | Neither | Searches both |
+
+    If no hint is found, the bot tries anime first and then manga.
+  </Accordion>
+
+  <Accordion title="LLM fallback">
+    If the LLM service is unavailable or returns an invalid result, the bot falls back to searching your raw query text directly on AniList. This works like `/anime` or `/manga` but without the natural-language interpretation.
+  </Accordion>
+</AccordionGroup>
+
+## Input validation
+
+The bot validates your search input before processing:
+
+- Empty queries are rejected
+- Queries that exceed the maximum length are rejected
+
+If validation fails, you'll see a message like: "Invalid search input: search cannot be empty."
+
+## Privacy
+
+Search queries are processed by the LLM provider configured for the bot. Query text and results may be sent to the LLM service. User IDs are hashed before being sent to observability tools.
+
+## Source code reference
+
+Implementation: `src/commands/search/command.rs:50`
+
+The `register()` function defines the command structure:
+
+```rust
+pub fn register() -> CreateCommand {
+    CreateCommand::new("search")
+        .description("Find anime or manga from a natural-language search")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "query",
+                "What you want to find, in plain English",
+            )
+            .required(true),
+        )
+}
+```

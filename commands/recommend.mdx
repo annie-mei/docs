@@ -1,0 +1,135 @@
+---
+title: /recommend
+description: Get AniList community recommendations for an anime or manga
+icon: sparkles
+---
+
+## Overview
+
+The `/recommend` command fetches AniList community recommendations for a given anime or manga. It shows up to five related titles with scores, genres, and links.
+
+## Command syntax
+
+```text
+/recommend type:<anime|manga> search:<AniList ID or search term>
+```
+
+## Parameters
+
+<ParamField path="type" type="string" required>
+  Whether to find anime or manga recommendations
+  - `anime` — search anime recommendations
+  - `manga` — search manga recommendations
+</ParamField>
+
+<ParamField path="search" type="string" required>
+  AniList ID (numeric) or search term (title in any language)
+</ParamField>
+
+## Usage examples
+
+<Tabs>
+  <Tab title="By AniList ID">
+    ```text
+    /recommend type:anime search:21
+    ```
+    Returns recommendations for **One Piece** using its AniList ID.
+  </Tab>
+  <Tab title="By title">
+    ```text
+    /recommend type:manga search:Chainsaw Man
+    ```
+    Searches for "Chainsaw Man" and returns manga recommendations.
+  </Tab>
+</Tabs>
+
+## Response data
+
+The bot returns a rich embed with:
+
+<ResponseField name="Title">
+  The title of the anime or manga you searched for, with a link to its AniList page
+</ResponseField>
+
+<ResponseField name="Recommendations">
+  Up to five recommended titles, each showing:
+  - Title with AniList link
+  - Media type (Anime / Manga)
+  - Format and status (e.g. "TV / Finished")
+  - Average score (out of 100)
+  - AniList community rating
+  - Up to three genres
+</ResponseField>
+
+<ResponseField name="Thumbnail">
+  Cover image from AniList
+</ResponseField>
+
+import { SearchNoResults } from '/snippets/search-no-results.mdx';
+import { NsfwWarning } from '/snippets/search-nsfw-warning.mdx';
+
+## Search tips
+
+<NsfwWarning />
+
+<Tip>
+  **AniList IDs are the most reliable way to search.** Find the ID in the URL:
+
+  `https://anilist.co/anime/1` → Use `/recommend type:anime search:1`
+</Tip>
+
+<AccordionGroup>
+  <SearchNoResults mediaType="title" extra='Searching with fewer words or the full canonical name' />
+
+  <Accordion title="No recommendations found">
+    If a title has no community recommendations on AniList, the bot returns:
+
+    ```text
+    No recommendations found for <title>.
+    ```
+  </Accordion>
+
+  <Accordion title="NSFW filtering">
+    Age-restricted titles and their recommendations are hidden in non-NSFW channels. Use `/recommend` in an age-restricted channel to see all recommendations.
+  </Accordion>
+</AccordionGroup>
+
+## Input validation
+
+The bot validates your search input before processing:
+
+- Empty queries are rejected
+- Queries that exceed the maximum length are rejected
+
+If validation fails, you'll see a message like: "Invalid search input: search cannot be empty."
+
+## Source code reference
+
+Implementation: `src/commands/recommend/command.rs:30`
+
+The `register()` function defines the command structure:
+
+```rust
+pub fn register() -> CreateCommand {
+    CreateCommand::new("recommend")
+        .description("Fetch AniList recommendations for an anime or manga")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "type",
+                "Whether to find anime or manga recommendations",
+            )
+            .add_string_choice("Anime", "anime")
+            .add_string_choice("Manga", "manga")
+            .required(true),
+        )
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "search",
+                "AniList ID or search term",
+            )
+            .required(true),
+        )
+}
+```
