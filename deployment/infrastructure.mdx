@@ -23,7 +23,7 @@ The current production deployment uses Neon, Upstash, Doppler, Sentry, and Oracl
 ### What Annie Mei needs
 
 - A PostgreSQL connection string in `DATABASE_URL`
-- A database user with permission to run migrations on startup
+- A database user with read/write permissions for the bot and auth service schemas
 - TLS enabled if your database is remote
 - Optional connection pooling if your provider offers it
 
@@ -38,7 +38,7 @@ The current production deployment uses Neon, Upstash, Doppler, Sentry, and Oracl
    - Add `?sslmode=require` if your provider requires TLS
    - Set it as `DATABASE_URL`
 
-4. **Start the bot**. Annie Mei runs embedded SQLx migrations automatically on startup.
+4. **Start the bot**. The bot connects to PostgreSQL and expects the schema to already be in place.
 
 ### Connection Pooling
 

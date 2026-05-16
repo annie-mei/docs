@@ -103,7 +103,7 @@ Both services also need PostgreSQL access. The bot needs Redis. See [Environment
     ```
 
     <Note>
-      The bot and auth service each run their own migrations on startup. The bot also needs Redis before `cargo run` succeeds.
+      The auth service runs its own migrations on startup. The bot connects to PostgreSQL and expects the schema to already be in place. The bot also needs Redis before `cargo run` succeeds.
     </Note>
   </Step>
 

@@ -12,7 +12,7 @@ The bot service:
 
 - connects to Discord and registers slash commands
 - handles `/ping`, `/help`, `/anime`, `/manga`, `/search`, `/recommend`, `/character`, `/songs`, `/register`, `/unregister`, and `/whoami`
-- connects to PostgreSQL and runs embedded SQLx migrations on startup
+- connects to PostgreSQL with an async connection pool
 - connects to Redis for API response caching
 - builds the AniList OAuth start link that sends members to the auth service
 

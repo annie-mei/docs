@@ -12,16 +12,18 @@ This page focuses on the bot service codebase. For the self-hosted service layou
 
 Annie Mei uses modern Rust ecosystem tools for building a reliable and performant Discord bot:
 
-| Component | Technology                   | Purpose                                  |
-| --------- | ---------------------------- | ---------------------------------------- |
-| Language  | Rust 2024 Edition            | Core programming language                |
-| Discord   | Serenity 0.12                | Discord API client and gateway           |
-| Database  | PostgreSQL + Diesel ORM      | User data persistence and schema management |
-| Cache     | Redis                        | Fast API response caching                |
-| HTTP      | Reqwest (blocking)           | External API requests (AniList, MAL)     |
-| Async     | Tokio                        | Asynchronous runtime for event handling  |
-| Logging   | tracing + tracing-subscriber | Structured logging and observability     |
-| Errors    | Sentry                       | Error tracking and monitoring            |
+| Component | Technology | Purpose |
+| --------- | ---------- | ------- |
+| Language | Rust 2024 Edition | Core programming language |
+| Discord | Serenity 0.12 | Discord API client and gateway |
+| Database | PostgreSQL + SQLx | User data persistence and queries |
+| Cache | Redis | Fast API response caching |
+| HTTP | Reqwest (blocking) | External API requests (AniList, MAL) |
+| Async | Tokio | Asynchronous runtime for event handling |
+| LLM | Google Gemini | Natural-language search |
+| Analytics | PostHog | Analytics and usage tracking |
+| Logging | tracing + tracing-subscriber | Structured logging and observability |
+| Errors | Sentry | Error tracking and monitoring |
 
 ## Project Layout
 
@@ -32,9 +34,8 @@ src/
 ├── commands/        # Slash command implementations
 ├── models/          # Data types, DB models, API responses
 ├── utils/           # Shared utilities, API clients, DB helpers
-├── schema.rs        # Diesel schema (AUTO-GENERATED - never edit)
 └── main.rs          # Bot entry point and event routing
-migrations/          # Diesel SQL migrations
+migrations/          # SQLx SQL migrations
 ```
 
 ### Commands Directory
@@ -47,12 +48,34 @@ src/commands/
 │   ├── mod.rs
 │   ├── command.rs      # Command registration and execution
 │   └── queries.rs      # GraphQL queries for AniList API
+├── character/
+│   ├── mod.rs
+│   ├── command.rs
+│   └── queries.rs
 ├── manga/
+│   ├── mod.rs
+│   ├── command.rs
+│   └── queries.rs
+├── recommend/
+│   ├── mod.rs
+│   ├── command.rs
+│   └── queries.rs
+├── search/
+│   ├── mod.rs
+│   ├── command.rs
+│   └── prompts.rs
 ├── songs/
+│   ├── command.rs
+│   ├── fetcher.rs
+│   └── mod.rs
 ├── register/
 │   └── command.rs      # OAuth link command and response handling
-├── ping.rs             # Simple single-file command
 ├── help.rs
+├── input_validation.rs
+├── ping.rs             # Simple single-file command
+├── response.rs         # CommandResponse enum
+├── traits.rs           # Shared data source traits
+├── unregister.rs
 ├── whoami.rs           # Shows linked AniList account for the caller
 └── mod.rs              # Module exports
 ```
@@ -64,13 +87,22 @@ Data structures for API responses and database models:
 ```
 src/models/
 ├── db/
-│   ├── user.rs         # Database models (Diesel)
+│   ├── oauth_credential.rs  # SQLx model for auth-service oauth_credentials
 │   └── mod.rs
-├── anilist_anime.rs    # AniList anime API response types
-├── anilist_manga.rs    # AniList manga API response types
-├── anilist_common.rs   # Shared AniList types
-├── mal_response.rs     # MyAnimeList API response types
-├── transformers.rs     # Convert API responses to Discord embeds
+├── anilist_anime.rs          # AniList anime API response types
+├── anilist_character.rs     # AniList character API response types
+├── anilist_common.rs        # Shared AniList types
+├── anilist_manga.rs         # AniList manga API response types
+├── anilist_recommendation.rs # AniList recommendation API response types
+├── character_id_response.rs # Character ID-only lookup response
+├── character_response.rs   # Character full-lookup response
+├── fetcher.rs              # External API client helpers
+├── id_response.rs           # AniList ID-only response types
+├── mal_response.rs          # MyAnimeList API response types
+├── media_response.rs        # Generic media search response
+├── media_type.rs            # Anime / Manga type enum
+├── transformers.rs          # Convert API responses to Discord embeds
+├── user_media_list.rs       # Guild member media list data
 └── mod.rs
 ```
 
@@ -81,94 +113,83 @@ Shared functionality and external integrations:
 ```
 src/utils/
 ├── requests/
-│   ├── anilist.rs      # AniList API client
+│   ├── anilist.rs       # AniList API client
 │   ├── my_anime_list.rs # MAL API client
 │   └── mod.rs
-├── database.rs         # Diesel connection and helpers
-├── redis.rs            # Redis caching layer
-├── spotify.rs          # Spotify API integration
-├── formatter.rs        # Text formatting utilities
-├── fuzzy.rs            # Fuzzy string matching
-├── privacy.rs          # User ID hashing for Sentry
-├── statics.rs          # Constants and environment variables
+├── channel.rs           # NSFW channel detection
+├── database.rs          # SQLx connection pool and helpers
+├── fetch_by_arguments.rs # Shared fetch-by-ID and fetch-by-name logic
+├── formatter.rs         # Text formatting utilities
+├── fuzzy.rs              # Fuzzy string matching
+├── guild.rs              # Guild member media list queries
+├── llm/                  # OpenAI-compatible LLM client
+│   ├── mod.rs
+│   └── tests.rs
+├── oauth/
+│   └── mod.rs           # OAuth context configuration and URL building
+├── posthog.rs           # PostHog LLM analytics telemetry
+├── privacy.rs           # User ID hashing for Sentry
+├── redis.rs             # Redis caching layer
+├── spotify.rs           # Spotify API integration
+├── statics.rs           # Constants and environment variables
+├── tls.rs               # TLS provider setup
 └── mod.rs
 ```
 
-## Async/Blocking Architecture
+## Database access
 
-Annie Mei uses a hybrid async/blocking pattern:
+Annie Mei uses [SQLx](https://github.com/launchbadge/sqlx) for PostgreSQL queries. The bot shares a database with the auth service and reads from the `oauth_credentials` table directly via async SQL queries.
 
-- **Async**: Discord interactions via Serenity and Tokio
-- **Blocking**: External API calls via blocking reqwest
-- **Bridge**: `tokio::task::spawn_blocking` wraps blocking operations
-
-<Warning>
-  Always call `interaction.defer()` before long-running operations. Discord enforces a 3-second response window.
-</Warning>
-
-### Example Pattern
-
-```rust
-#[instrument(name = "command.anime.run", skip(ctx, interaction))]
-pub async fn run(ctx: &Context, interaction: &mut CommandInteraction) {
-    // Defer immediately for long operations
-    let _ = interaction.defer(&ctx.http).await;
-
-    // Blocking API call wrapped in spawn_blocking
-    let anime_result = match task::spawn_blocking(move || {
-        AniListSource.fetch_anime(&search_term)
-    }).await {
-        Ok(result) => result,
-        Err(e) => {
-            error!(error = %e, "spawn_blocking panicked");
-            None
-        }
-    };
-
-    // Handle response...
-}
-```
+<Note>
+  The bot previously used Diesel ORM. As of v2.15.0, the bot has no Diesel-managed tables. Migrations are now SQLx-based. The legacy `users` table was dropped in migration `2026-05-02-000001_drop_users_table`.
+</Note>
 
 ## Entry Points
 
 The bot's execution flow starts in `src/main.rs`:
 
-1. **Initialization** (`main.rs:116-241`)
-   - Parse CLI arguments
+1. **Initialization** (`main.rs`)
+   - Parse CLI arguments (including a `hash` subcommand)
+   - Install Rustls crypto provider
    - Initialize Sentry error tracking
    - Set up tracing/logging
-   - Run database migrations
-   - Create Discord client
+   - Create SQLx connection pool
+   - Create Discord client with data (pool, LLM client, OAuth config)
 
-2. **Event Handler** (`main.rs:52-112`)
+2. **Event Handler** (`main.rs`)
    - `interaction_create` - Routes slash commands to handlers
    - `ready` - Registers slash commands with Discord
 
-3. **Command Routing** (`main.rs:66-84`)
+3. **Command Routing** (`main.rs`)
    - Matches command names to handler functions
    - Configures tracing spans for observability
+   - Commands: `ping`, `help`, `songs`, `manga`, `anime`, `search`, `recommend`, `character`, `register`, `unregister`, `whoami`
 
 ## Environment Configuration
 
 The bot requires these environment variables to run:
 
-| Variable                  | Description                        |
-| ------------------------- | ---------------------------------- |
-| `DISCORD_TOKEN`           | Bot token from Discord Developer Portal |
-| `SENTRY_DSN`              | Sentry project DSN for error tracking |
-| `ENV`                     | Environment name (dev/staging/prod) |
-| `DATABASE_URL`            | PostgreSQL connection string       |
-| `REDIS_URL`               | Redis connection string            |
-| `AUTH_SERVICE_BASE_URL`   | Auth service origin for OAuth start URLs |
-| `SPOTIFY_CLIENT_ID`       | Spotify API client ID              |
-| `SPOTIFY_CLIENT_SECRET`   | Spotify API client secret          |
-| `MAL_CLIENT_ID`           | MyAnimeList API client ID          |
+| Variable | Description |
+| --------- | ----------- |
+| `AUTH_SERVICE_BASE_URL` | Auth service origin for OAuth start URLs |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `DISCORD_TOKEN` | Bot token from Discord Developer Portal |
+| `ENV` | Environment name (development, staging, production) |
+| `GEMINI_API_KEY` | Optional: enables LLM features |
+| `LLM_BASE_URL` | Optional: overrides the default LLM base URL |
+| `LLM_MODEL` | Optional: overrides the default LLM model (default `gemini-3.1-flash-lite`) |
+| `MAL_CLIENT_ID` | MyAnimeList API client ID |
 | `OAUTH_CONTEXT_SIGNING_SECRET` | Shared secret for OAuth context signing |
-| `USERID_HASH_SALT`        | Salt for hashing Discord user IDs in logs |
 | `OAUTH_CONTEXT_TTL_SECONDS` | Optional: OAuth context expiry in seconds (default `300`) |
-| `SENTRY_TRACES_SAMPLE_RATE` | Optional: Sentry trace sampling (0.0-1.0) |
-| `GEMINI_API_KEY`          | Optional: enables Gemini/OpenAI-compatible LLM features |
-| `LLM_MODEL`               | Optional: overrides the default LLM model |
-| `LLM_BASE_URL`            | Optional: overrides the default LLM base URL |
+| `POSTHOG_CAPTURE_LLM_CONTENT` | Optional: capture LLM prompts and outputs in PostHog (default `true`) |
+| `POSTHOG_HOST` | Optional: PostHog ingestion host (default `https://us.i.posthog.com`) |
+| `POSTHOG_PROJECT_API_KEY` | Optional: enables PostHog analytics events |
+| `REDIS_URL` | Redis connection URL |
+| `RUST_LOG` | Optional: tracing/log level filter |
+| `SENTRY_DSN` | Sentry project DSN for error tracking |
+| `SENTRY_TRACES_SAMPLE_RATE` | Optional: Sentry trace sampling (0.0–1.0) |
+| `SPOTIFY_CLIENT_ID` | Spotify API client ID |
+| `SPOTIFY_CLIENT_SECRET` | Spotify API client secret |
+| `USERID_HASH_SALT` | Secret salt for hashing user IDs in logs |
 
 See `src/utils/statics.rs` for constant definitions.
