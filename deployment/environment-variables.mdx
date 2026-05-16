@@ -47,8 +47,11 @@ These values should stay aligned across the bot and auth service.
 | `SENTRY_TRACES_SAMPLE_RATE` | `0.0` | Float from `0.0` to `1.0` |
 | `OAUTH_CONTEXT_TTL_SECONDS` | `300` | Lifetime of `/register` OAuth links |
 | `GEMINI_API_KEY` | none | Enables Gemini or another compatible LLM provider |
-| `LLM_MODEL` | `gemini-2.0-flash` | Optional LLM model override |
+| `LLM_MODEL` | `gemini-3.1-flash-lite` | Optional LLM model override |
 | `LLM_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta/openai` | Optional OpenAI-compatible base URL override |
+| `POSTHOG_PROJECT_API_KEY` | none | Enables PostHog LLM analytics events |
+| `POSTHOG_HOST` | `https://us.i.posthog.com` | PostHog ingestion host |
+| `POSTHOG_CAPTURE_LLM_CONTENT` | `true` | Capture LLM prompts and outputs in PostHog |
 | `RUST_LOG` | `info,serenity=warn` | Tracing filter for local or production logging |
 
 ## Auth service
@@ -101,6 +104,15 @@ SENTRY_TRACES_SAMPLE_RATE=0.0
 USERID_HASH_SALT=generate_a_random_secret_value
 AUTH_SERVICE_BASE_URL=http://127.0.0.1:8000
 OAUTH_CONTEXT_SIGNING_SECRET=generate_a_random_secret_value
+
+# LLM (optional — enables /search natural-language queries)
+# GEMINI_API_KEY=
+# LLM_MODEL=gemini-3.1-flash-lite
+# LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+
+# PostHog LLM analytics (optional)
+# POSTHOG_PROJECT_API_KEY=
+# POSTHOG_HOST=https://us.i.posthog.com
 
 # Optional
 OAUTH_CONTEXT_TTL_SECONDS=300
