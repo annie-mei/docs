@@ -17,7 +17,7 @@ Ensure you have the following installed:
 - **Rust 1.95 or later** - [Install via rustup](https://rustup.rs/)
 - **PostgreSQL** - For database storage
 - **Redis** - For caching API responses
-- **SQLx CLI** (optional) - For running or creating migrations manually during development
+- **SQLx CLI** (optional) - For auth service schema work
 
 ### Install SQLx CLI
 
@@ -135,13 +135,14 @@ OAUTH_CONTEXT_TTL_SECONDS=300
   </Step>
 
   <Step title="Run Migrations">
-    Apply all database migrations using SQLx if you want to prepare the database before starting the bot:
+    The bot does not run migrations and does not own database tables. If you are testing `/register`, run the auth service once to apply its SQLx migrations to the shared database.
 
     ```bash
-    sqlx migrate run
+    cd ../auth
+    cargo run
     ```
 
-    This step is optional for a normal local run — the bot expects the database schema to already be in place. See the [Database](/development/database) guide for more details.
+    This step is optional for a bot-only local run. See the [Database](/development/database) guide for more details.
   </Step>
 
   <Step title="Verify Schema">

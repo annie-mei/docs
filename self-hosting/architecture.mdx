@@ -12,8 +12,8 @@ The bot service handles Discord interactions and media lookups. The auth service
 
 | Service | Repo path | What it does | Main dependencies |
 |---------|-----------|--------------|-------------------|
-| Bot service | `./` | Runs slash commands and reads AniList, MyAnimeList, Spotify, PostgreSQL, and Redis | Discord, PostgreSQL, Redis |
-| Auth service | `./auth` | Validates signed OAuth context, redirects to AniList, handles callback, stores OAuth credentials, and serves stack health/readiness endpoints | AniList OAuth, PostgreSQL |
+| Bot service | `annie-mei/` | Runs slash commands and reads AniList, MyAnimeList, Spotify, PostgreSQL, and Redis | Discord, PostgreSQL, Redis |
+| Auth service | `auth/` | Validates signed OAuth context, redirects to AniList, handles callback, stores OAuth credentials, and serves stack health/readiness endpoints | AniList OAuth, PostgreSQL |
 
 ## How `/register` works
 

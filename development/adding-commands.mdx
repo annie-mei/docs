@@ -226,10 +226,8 @@ pub async fn run(ctx: &Context, interaction: &mut CommandInteraction) {
     // Defer immediately
     let _ = interaction.defer(&ctx.http).await;
 
-    // Long operation (e.g., API call)
-    let result = tokio::task::spawn_blocking(move || {
-        // Blocking operation here
-    }).await;
+    // Long operation (e.g., async API call or database query)
+    let result = fetch_example_data().await;
 
     // Edit the deferred response
     let builder = EditInteractionResponse::new()
@@ -242,32 +240,31 @@ pub async fn run(ctx: &Context, interaction: &mut CommandInteraction) {
   Always defer before operations that take longer than 3 seconds, including external API calls and database queries.
 </Warning>
 
-## Using Blocking Operations
+## Calling external services
 
-External API calls use blocking reqwest. Wrap them in `spawn_blocking`:
+External API clients use async `reqwest::Client`. Await those requests directly after deferring the Discord interaction:
 
 ```rust
-use tokio::task;
 use tracing::error;
 
-let result = match task::spawn_blocking(move || {
-    // Blocking HTTP request
-    let response = reqwest::blocking::get("https://api.example.com/data")?;
-    response.json()
-}).await {
-    Ok(Ok(data)) => Some(data),
-    Ok(Err(e)) => {
-        error!(error = %e, "API request failed");
-        None
-    }
-    Err(e) => {
-        error!(error = %e, "spawn_blocking panicked");
+let result = match client
+    .post("https://graphql.anilist.co/")
+    .header("Content-Type", "application/json")
+    .body(query_json.to_string())
+    .send()
+    .await
+{
+    Ok(response) => Some(response),
+    Err(error) => {
+        error!(error = %error, "API request failed");
         None
     }
 };
 ```
 
-See `src/commands/anime/command.rs:88-95` for a complete example.
+Use `spawn_blocking` only for synchronous work that can block the Tokio runtime, such as the current Redis cache helper calls.
+
+See `src/utils/requests/anilist.rs` for the AniList HTTP client and `src/commands/recommend/command.rs` for a bounded `spawn_blocking` cache example.
 
 ## Adding Instrumentation
 

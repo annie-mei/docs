@@ -70,6 +70,10 @@ RUST_LOG=info,serenity=warn
 
 Use [Environment Variables](/deployment/environment-variables) for the full bot and auth reference.
 
+<Warning>
+  Set `DATABASE_URL` to the same PostgreSQL database used by the auth service. The bot reads OAuth credential rows that the auth service writes.
+</Warning>
+
 ## Run the bot service locally
 
 <Steps>
@@ -88,7 +92,7 @@ Use [Environment Variables](/deployment/environment-variables) for the full bot 
     cargo run
     ```
 
-    On startup, the bot will connect to PostgreSQL, run SQLx migrations, load OAuth configuration, and register slash commands.
+    On startup, the bot will connect to PostgreSQL, load OAuth configuration, and register slash commands.
   </Step>
 </Steps>
 

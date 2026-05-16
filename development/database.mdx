@@ -1,6 +1,6 @@
 ---
 title: Database
-description: Managing database migrations and queries with SQLx and PostgreSQL
+description: Understand database access, shared OAuth schema, and migrations for Annie Mei.
 icon: database
 ---
 
@@ -52,15 +52,17 @@ pub async fn create_pool() -> DbPool {
 | `idle_timeout` | 60 seconds | Idle connection cleanup |
 | `test_before_acquire` | true | Validate connections before use |
 
-## Migrations
+## Migration ownership
 
-Annie Mei uses SQLx migrations stored in `migrations/`. Each migration has `up.sql` and `down.sql` files in timestamped directories.
+The bot service does not run migrations on startup and has no bot-owned tables. It connects to a database that already contains the auth-service-owned OAuth schema.
 
-<Note>
-  The migration directory contains historical migrations from when the bot used Diesel. Since the bot no longer has bot-owned tables (the `users` table was dropped), you typically only need to run migrations if you're also managing the auth service database. The bot itself connects to an existing database with the expected schema already in place.
-</Note>
+The current OAuth schema migrations live in the companion auth service repo under `migrations/`. The auth service runs them on startup with `sqlx::migrate!("./migrations")`.
 
-### Current migration history
+<Warning>
+  Do not use the bot repo's historical migrations to prepare the OAuth schema. They only document the removed legacy `users` table and do not create `oauth_credentials` or `oauth_sessions`.
+</Warning>
+
+### Bot repo historical migrations
 
 ```
 migrations/
@@ -71,38 +73,50 @@ migrations/
 └── 2026-05-02-000001_drop_users_table/
 ```
 
-### Creating migrations
+### Auth repo schema migrations
 
-Use the SQLx CLI to create migration scaffolding:
+```text
+auth/migrations/
+├── 20260328000001_create_oauth_credentials.up.sql
+├── 20260328000002_create_oauth_sessions.up.sql
+├── 20260401000003_add_oauth_credential_relink_fields.up.sql
+└── 20260505000001_add_anilist_username_to_oauth_credentials.up.sql
+```
+
+### Creating auth schema migrations
+
+Create new OAuth schema migrations from the auth service repo:
 
 ```bash
-sqlx migrate add <migration_name>
+cd ../auth
+sqlx migrate add -r <migration_name>
 ```
 
-This creates a new directory:
+This creates reversible SQLx migration files:
 
-```
-migrations/YYYYMMDDHHMMSS_<migration_name>/
-├── up.sql
-└── down.sql
+```text
+migrations/YYYYMMDDHHMMSS_<migration_name>.up.sql
+migrations/YYYYMMDDHHMMSS_<migration_name>.down.sql
 ```
 
 <Note>
-  The existing migrations use the legacy Diesel timestamp format (`YYYY-MM-DD-HHMMSS_name`). New migrations created with `sqlx migrate add` use the SQLx format (`YYYYMMDDHHMMSS_name`). Both formats work with SQLx CLI.
+  Coordinate schema changes with the bot repo when you add, rename, or remove columns that the bot reads or deletes.
 </Note>
 
 ### Running migrations
 
-**Manually during development**:
+The auth service runs migrations during startup. To run them manually from the auth service repo:
 
 ```bash
+cd ../auth
 sqlx migrate run
 ```
 
-**Reverting** (requires manual reversion):
+To inspect migration state:
 
 ```bash
-sqlx migrate revert
+cd ../auth
+sqlx migrate info
 ```
 
 ## Querying with SQLx
@@ -214,7 +228,7 @@ let Some(database_pool) = get_pool_from_context(ctx).await else {
 
 ## Setup
 
-### Install SQLx CLI
+### Install SQLx CLI for auth schema work
 
 ```bash
 cargo install sqlx-cli --no-default-features --features postgres
@@ -232,15 +246,17 @@ Or using psql:
 CREATE DATABASE annie_mei;
 ```
 
-### Run migrations manually
+### Run auth migrations manually
 
 ```bash
+cd ../auth
 sqlx migrate run
 ```
 
 ### Check migration status
 
 ```bash
+cd ../auth
 sqlx migrate info
 ```
 
@@ -262,9 +278,10 @@ sqlx migrate info
   </Accordion>
 
   <Accordion title="Migration failures">
-    Check the current migration state:
+    Check the auth service migration state from the auth repo:
 
     ```bash
+    cd ../auth
     sqlx migrate info
     ```
 

@@ -18,7 +18,7 @@ Annie Mei uses modern Rust ecosystem tools for building a reliable and performan
 | Discord | Serenity 0.12 | Discord API client and gateway |
 | Database | PostgreSQL + SQLx | User data persistence and queries |
 | Cache | Redis | Fast API response caching |
-| HTTP | Reqwest (blocking) | External API requests (AniList, MAL) |
+| HTTP | Reqwest async client | External API requests (AniList, MAL, LLM, PostHog) |
 | Async | Tokio | Asynchronous runtime for event handling |
 | LLM | Google Gemini | Natural-language search |
 | Analytics | PostHog | Analytics and usage tracking |
@@ -35,7 +35,7 @@ src/
 ├── models/          # Data types, DB models, API responses
 ├── utils/           # Shared utilities, API clients, DB helpers
 └── main.rs          # Bot entry point and event routing
-migrations/          # SQLx SQL migrations
+migrations/          # Historical bot migrations for the removed legacy users table
 ```
 
 ### Commands Directory
@@ -141,7 +141,7 @@ src/utils/
 Annie Mei uses [SQLx](https://github.com/launchbadge/sqlx) for PostgreSQL queries. The bot shares a database with the auth service and reads from the `oauth_credentials` table directly via async SQL queries.
 
 <Note>
-  The bot previously used Diesel ORM. As of v2.15.0, the bot has no Diesel-managed tables. Migrations are now SQLx-based. The legacy `users` table was dropped in migration `2026-05-02-000001_drop_users_table`.
+  The bot previously used Diesel ORM. As of v2.15.0, the bot has no Diesel-managed tables. The current OAuth schema migrations live in the companion auth service repo and run during auth-service startup. The bot repo's legacy `users` table was dropped in migration `2026-05-02-000001_drop_users_table`.
 </Note>
 
 ## Entry Points

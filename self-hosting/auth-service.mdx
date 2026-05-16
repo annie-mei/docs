@@ -4,7 +4,7 @@ description: Configure and run the Annie Mei auth service for AniList OAuth link
 icon: shield-check
 ---
 
-This page covers the companion `auth` service in `auth/`.
+This page covers the companion `auth` service repo.
 
 The auth service makes AniList account linking work for `/register`.
 
@@ -32,20 +32,20 @@ http://127.0.0.1:8000/oauth/anilist/callback
 
 ## Configure the auth environment
 
-From the repository root:
+From a workspace where the bot repo and auth repo are siblings:
 
 ```bash
-cd auth
+cd ../auth
 cp .env.example .env
 ```
 
-Then edit `auth/.env`:
+Then edit `.env`:
 
 ```bash
 ANILIST_CLIENT_ID=your_anilist_client_id
 ANILIST_CLIENT_SECRET=your_anilist_client_secret
 ANILIST_REDIRECT_URI=http://127.0.0.1:8000/oauth/anilist/callback
-DATABASE_URL=postgres://user:password@localhost/annie_mei_auth
+DATABASE_URL=postgres://user:password@localhost/annie_mei
 ROCKET_SECRET_KEY=generate_a_random_secret_key
 OAUTH_CONTEXT_SIGNING_SECRET=generate_a_random_secret_value
 USERID_HASH_SALT=generate_a_random_secret_value
@@ -57,23 +57,23 @@ SENTRY_TRACES_SAMPLE_RATE=0.0
 ```
 
 <Note>
-  `OAUTH_CONTEXT_SIGNING_SECRET` must match the bot service value. Keep `USERID_HASH_SALT` aligned too if you want matching hashed user identifiers across logs.
+  `DATABASE_URL` and `OAUTH_CONTEXT_SIGNING_SECRET` must match the bot service values. Keep `USERID_HASH_SALT` aligned too if you want matching hashed user identifiers across logs.
 </Note>
 
 ## Run the auth service locally
 
 <Steps>
   <Step title="Create the auth database">
-    Create the PostgreSQL database or connection target you want the auth service to use.
+    Create the shared PostgreSQL database or connection target you want both services to use.
 
     ```bash
-    createdb annie_mei_auth
+    createdb annie_mei
     ```
   </Step>
 
   <Step title="Start the service">
     ```bash
-    cd auth
+    cd ../auth
     cargo run
     ```
 
