@@ -77,9 +77,19 @@ Let's create a `/ping` style command as an example.
 
     ```rust src/commands/mod.rs
     pub mod anime;
+    pub mod character;
     pub mod help;
+    pub mod input_validation;
     pub mod manga;
     pub mod ping;
+    pub mod recommend;
+    pub mod register;
+    pub mod response;
+    pub mod search;
+    pub mod songs;
+    pub mod traits;
+    pub mod unregister;
+    pub mod whoami;
     pub mod example;  // Add this line
     ```
   </Step>
@@ -95,6 +105,12 @@ Let's create a `/ping` style command as an example.
             commands::songs::command::register(),
             commands::manga::command::register(),
             commands::anime::command::register(),
+            commands::search::command::register(),
+            commands::recommend::command::register(),
+            commands::character::command::register(),
+            commands::register::command::register(),
+            commands::unregister::register(),
+            commands::whoami::register(),
             commands::example::register(),  // Add this line
         ];
 
@@ -103,7 +119,7 @@ Let's create a `/ping` style command as an example.
     }
     ```
 
-    See `src/main.rs:92-100` for the full implementation.
+    See `src/main.rs` for the full implementation.
   </Step>
 
   <Step title="Add Match Arm in interaction_create">
@@ -116,14 +132,20 @@ Let's create a `/ping` style command as an example.
         "songs" => commands::songs::command::run(&ctx, &mut command).await,
         "manga" => commands::manga::command::run(&ctx, &mut command).await,
         "anime" => commands::anime::command::run(&ctx, &mut command).await,
-        "example" => commands::example::run(&ctx, &command).await,  // Add this line
+        "search" => commands::search::command::run(&ctx, &mut command).await,
+        "recommend" => commands::recommend::command::run(&ctx, &mut command).await,
+        "character" => commands::character::command::run(&ctx, &mut command).await,
+        "register" => commands::register::command::run(&ctx, &mut command).await,
+        "unregister" => commands::unregister::run(&ctx, &mut command).await,
+        "whoami" => commands::whoami::run(&ctx, &mut command).await,
+        "example" => commands::example::run(&ctx, &mut command).await,  // Add this line
         _ => {
             // Error handler...
         }
     };
     ```
 
-    See `src/main.rs:66-84` for the full implementation.
+    See `src/main.rs` for the full implementation.
   </Step>
 </Steps>
 

@@ -38,7 +38,7 @@ The current production deployment uses Neon, Upstash, Doppler, Sentry, and Oracl
    - Add `?sslmode=require` if your provider requires TLS
    - Set it as `DATABASE_URL`
 
-4. **Start the bot**. Annie Mei runs embedded Diesel migrations automatically on startup.
+4. **Start the bot**. Annie Mei runs embedded SQLx migrations automatically on startup.
 
 ### Connection Pooling
 
@@ -54,13 +54,13 @@ DATABASE_URL=postgres://user:password@db.example.com/annie_mei?sslmode=require
 
 ### Schema
 
-Annie Mei uses Diesel ORM for database migrations. The schema is defined in:
-- `src/schema.rs` (auto-generated, do not edit)
+Annie Mei uses SQLx for database migrations. The schema is defined in:
 - `migrations/` (SQL migration files)
 
-The database stores:
-- User AniList account registrations
-- Linked AniList usernames and AniList user IDs for registered Discord accounts
+The bot reads from the auth-service-owned `oauth_credentials` table. The database stores:
+- OAuth credentials linking Discord accounts to AniList accounts
+- AniList usernames and AniList user IDs for registered Discord accounts
+- OAuth session state for in-progress and completed registration flows
 
 ## Cache: Redis
 
