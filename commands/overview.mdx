@@ -15,6 +15,12 @@ Use Annie Mei slash commands to search AniList and tie your AniList profile to y
   <Card title="/manga" icon="book-open" href="/commands/manga">
     Look up manga details and metadata
   </Card>
+  <Card title="/search" icon="search" href="/commands/search">
+    Find anime or manga from a natural-language description
+  </Card>
+  <Card title="/recommend" icon="sparkles" href="/commands/recommend">
+    Get AniList community recommendations for a title
+  </Card>
   <Card title="/songs" icon="music" href="/commands/songs">
     Find opening and ending theme songs with Spotify links
   </Card>
@@ -25,7 +31,7 @@ Use Annie Mei slash commands to search AniList and tie your AniList profile to y
     Link your AniList account with secure OAuth flow
   </Card>
   <Card title="/unregister" icon="user-minus" href="/commands/unregister">
-    Unlink your AniList account and delete active stored OAuth credentials
+    Unlink your AniList account and delete stored OAuth credentials
   </Card>
   <Card title="/whoami" icon="user-search" href="/commands/whoami">
     Check which AniList account is currently linked
@@ -40,7 +46,7 @@ Use Annie Mei slash commands to search AniList and tie your AniList profile to y
 
 ## Search tips
 
-All media lookup commands (`/anime`, `/manga`, `/songs`) accept flexible search inputs.
+All media lookup commands (`/anime`, `/manga`, `/songs`, `/recommend`, `/character`) accept flexible search inputs.
 
 <AccordionGroup>
   <Accordion title="AniList IDs for exact matches">
@@ -102,7 +108,10 @@ By adding Annie Mei to a Discord server or using its slash commands, you agree t
     Use `/whoami` to verify the connected AniList account.
   </Step>
   <Step title="Search media">
-    Use `/anime` or `/manga` with a title or AniList ID.
+    Use `/anime`, `/manga`, or `/search` to find titles by name or AniList ID.
+  </Step>
+  <Step title="Get recommendations">
+    Use `/recommend` to find related titles based on an anime or manga you enjoy.
   </Step>
   <Step title="Find songs">
     Use `/songs` to get opening and ending theme tracks.

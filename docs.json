@@ -71,6 +71,8 @@
           "commands/overview",
           "commands/anime",
           "commands/manga",
+          "commands/search",
+          "commands/recommend",
           "commands/songs",
           "commands/character",
           "commands/register",

@@ -124,7 +124,7 @@ DATABASE_URL=postgres://user:password@host:5432/database?sslmode=require
 
 ### Running Migrations
 
-The bot automatically runs embedded Diesel migrations on startup. You only need Diesel CLI if you want to run or generate migrations manually during development.
+The bot expects the database schema to already be in place. The auth service owns and runs the OAuth schema migrations on startup. Use the auth service repo's SQLx migrations when setting up or modifying the shared OAuth schema.
 
 ## Cache Setup
 

@@ -11,8 +11,8 @@ This page covers the main `annie-mei` service in the repository root.
 The bot service:
 
 - connects to Discord and registers slash commands
-- handles `/ping`, `/help`, `/anime`, `/manga`, `/songs`, `/register`, and `/whoami`
-- connects to PostgreSQL and runs embedded Diesel migrations on startup
+- handles `/ping`, `/help`, `/anime`, `/manga`, `/search`, `/recommend`, `/character`, `/songs`, `/register`, `/unregister`, and `/whoami`
+- connects to PostgreSQL with an async connection pool
 - connects to Redis for API response caching
 - builds the AniList OAuth start link that sends members to the auth service
 
@@ -28,6 +28,7 @@ Before you run the bot service, make sure you have:
 - Spotify API credentials
 - MyAnimeList API client ID
 - auth service configuration values, including `AUTH_SERVICE_BASE_URL`
+- (optional) a Gemini or OpenAI-compatible API key for `/search`
 
 <Note>
   The bot currently loads OAuth configuration during startup. That means `AUTH_SERVICE_BASE_URL` and `OAUTH_CONTEXT_SIGNING_SECRET` are part of the normal bot setup, not optional extras.
@@ -69,6 +70,10 @@ RUST_LOG=info,serenity=warn
 
 Use [Environment Variables](/deployment/environment-variables) for the full bot and auth reference.
 
+<Warning>
+  Set `DATABASE_URL` to the same PostgreSQL database used by the auth service. The bot reads OAuth credential rows that the auth service writes.
+</Warning>
+
 ## Run the bot service locally
 
 <Steps>
@@ -87,7 +92,7 @@ Use [Environment Variables](/deployment/environment-variables) for the full bot 
     cargo run
     ```
 
-    On startup, the bot will connect to PostgreSQL, run migrations, load OAuth configuration, and register slash commands.
+    On startup, the bot will connect to PostgreSQL, load OAuth configuration, and register slash commands.
   </Step>
 </Steps>
 
