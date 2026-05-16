@@ -57,14 +57,14 @@ The `/search` command lets you find anime or manga using a natural-language desc
 
 ## Response data
 
-The bot returns the same rich embed as `/anime` or `/manga`, depending on what it finds, plus an interpretation message telling you what it searched for.
+The bot returns a rich media embed for the anime or manga it finds, plus an interpretation message telling you what it searched for.
 
 <ResponseField name="Interpretation">
   A short message like "I think you're thinking of the anime `One Piece`." or "I think you're thinking of `Dandadan`."
 </ResponseField>
 
 <ResponseField name="Anime or manga embed">
-  Same fields as `/anime` or `/manga` — title, metadata, genres, description, links, and guild data when available.
+  Same core media fields as `/anime` or `/manga` — title, metadata, genres, description, and links. `/search` does not include Discord server member status overlays.
 </ResponseField>
 
 import { SearchNoResults } from '/snippets/search-no-results.mdx';
@@ -94,7 +94,7 @@ import { NsfwWarning } from '/snippets/search-nsfw-warning.mdx';
   </Accordion>
 
   <Accordion title="LLM fallback">
-    If the LLM service is unavailable or returns an invalid result, the bot falls back to searching your raw query text directly on AniList. This works like `/anime` or `/manga` but without the natural-language interpretation.
+    If the LLM service is unavailable or returns an invalid result, the bot falls back to media-type hints from your query and searches AniList with the normalized query text. If it finds a result, the response still includes an interpretation line.
   </Accordion>
 </AccordionGroup>
 
@@ -109,7 +109,7 @@ If validation fails, you'll see a message like: "Invalid search input: search ca
 
 ## Privacy
 
-Search queries are processed by the LLM provider configured for the bot. Query text and results may be sent to the LLM service. User IDs are hashed before being sent to observability tools.
+Search queries are processed by the LLM provider configured for the bot. Your query may be sent to that provider for intent parsing. If PostHog LLM analytics is enabled, prompts and outputs may be captured depending on `POSTHOG_CAPTURE_LLM_CONTENT`. User IDs are hashed before being sent to observability tools.
 
 ## Source code reference
 

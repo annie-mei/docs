@@ -124,7 +124,7 @@ DATABASE_URL=postgres://user:password@host:5432/database?sslmode=require
 
 ### Running Migrations
 
-The bot expects the database schema to already be in place. Use SQLx CLI to run migrations manually when setting up or modifying the schema.
+The bot expects the database schema to already be in place. The auth service owns and runs the OAuth schema migrations on startup. Use the auth service repo's SQLx migrations when setting up or modifying the shared OAuth schema.
 
 ## Cache Setup
 

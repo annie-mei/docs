@@ -31,7 +31,7 @@ Self-hosted Annie Mei now has two Rust services:
 
 | Service | Purpose | Required for |
 |---------|---------|--------------|
-| `annie-mei` bot service | Discord slash commands, AniList and theme song lookups, health endpoint | All bot features |
+| `annie-mei` bot service | Discord slash commands, AniList and theme song lookups | All bot features |
 | `auth` service | AniList OAuth start and callback flow, secure account linking | `/register` and new account links |
 
 If you want full feature parity with the hosted bot, run both services.
@@ -55,7 +55,7 @@ If you want full feature parity with the hosted bot, run both services.
 
 Before you begin, ensure you have the following installed:
 
-- **Rust 1.94 or higher** - Install from [rustup.rs](https://rustup.rs/)
+- **Rust 1.95 or higher** - Install from [rustup.rs](https://rustup.rs/)
 - **PostgreSQL** - The bot and auth service both need database access
 - **Redis** - The bot uses Redis for cached API responses
 - **Git** - To clone the repository
@@ -87,9 +87,10 @@ Both services also need PostgreSQL access. The bot needs Redis. See [Environment
 ## Self-host checklist
 
 <Steps>
-  <Step title="Clone the repository">
+  <Step title="Clone the repositories">
     ```bash
     git clone https://github.com/annie-mei/annie-mei.git
+    git clone https://github.com/annie-mei/auth.git
     cd annie-mei
     ```
   </Step>
@@ -99,11 +100,10 @@ Both services also need PostgreSQL access. The bot needs Redis. See [Environment
 
     ```bash
     createdb annie_mei
-    createdb annie_mei_auth
     ```
 
     <Note>
-      The auth service runs its own migrations on startup. The bot connects to PostgreSQL and expects the schema to already be in place. The bot also needs Redis before `cargo run` succeeds.
+      Use the same PostgreSQL database for the bot and auth service. The auth service runs its own migrations on startup. The bot connects to PostgreSQL and expects the auth-owned schema to already be in place. The bot also needs Redis before `cargo run` succeeds.
     </Note>
   </Step>
 
@@ -120,10 +120,10 @@ Both services also need PostgreSQL access. The bot needs Redis. See [Environment
   </Step>
 
   <Step title="Configure the auth service">
-    Set up `auth/.env`, your AniList OAuth app, and the shared OAuth secrets.
+    Set up the auth repo `.env`, your AniList OAuth app, and the shared OAuth secrets.
 
     ```bash
-    cd auth
+    cd ../auth
     cp .env.example .env
     ```
 
@@ -134,8 +134,8 @@ Both services also need PostgreSQL access. The bot needs Redis. See [Environment
     Start the auth service and the bot service in separate terminals.
 
     ```text
-    terminal 1: cd auth && cargo run
-    terminal 2: cargo run
+    terminal 1: cd ../auth && cargo run
+    terminal 2: cd ../annie-mei && cargo run
     ```
 
     The local default is `http://127.0.0.1:8000` for the auth service. Use `http://127.0.0.1:8000/healthz` for liveness and `http://127.0.0.1:8000/readyz` for readiness.

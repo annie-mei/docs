@@ -16,7 +16,7 @@ Annie Mei only depends on a few infrastructure categories:
 
 For complete self-hosted deployments, plan for two processes: the Discord bot and the AniList OAuth auth service. The bot needs PostgreSQL and Redis. The auth service needs PostgreSQL.
 
-The current production deployment uses Neon, Upstash, Doppler, Sentry, and Oracle Cloud, but those are examples rather than requirements. You can use any compatible PostgreSQL, Redis, secrets workflow, and compute provider.
+The hosted Annie Mei bot currently uses Supabase, Upstash, and Doppler. Those providers are not self-hosting requirements; you can use any compatible PostgreSQL, Redis, secrets workflow, and compute provider.
 
 ## Database: PostgreSQL
 
@@ -49,13 +49,15 @@ DATABASE_URL=postgres://user:password@db.example.com/annie_mei?sslmode=require
 ```
 
 <Note>
-  The current production deployment uses Neon, so you may still see Neon-specific examples in workflow or operational notes. They are references, not requirements.
+  Provider-specific examples are references, not requirements. Any PostgreSQL provider works if the connection string is reachable from both services.
 </Note>
 
 ### Schema
 
-Annie Mei uses SQLx for database migrations. The schema is defined in:
-- `migrations/` (SQL migration files)
+The auth service owns the current OAuth schema migrations. The schema is defined in:
+- `auth/migrations/` (SQLx migration files in the auth service repo)
+
+The bot repo's `migrations/` directory contains historical migrations for the removed legacy `users` table and is not used to prepare the OAuth schema.
 
 The bot reads from the auth-service-owned `oauth_credentials` table. The database stores:
 - OAuth credentials linking Discord accounts to AniList accounts
