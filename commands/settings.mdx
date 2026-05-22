@@ -70,4 +70,4 @@ Use `guild_scores` with `opted_out` if you do not want your linked AniList score
 
 Implementation: `src/commands/settings/command.rs`
 
-The setting registry lives in `src/models/settings.rs`, and values are stored in `annie_mei.user_settings` and `annie_mei.guild_settings`.
+The SQLx persistence model lives in `src/models/db/settings.rs`, and runtime resolution helpers live in `src/utils/settings.rs`. Values are stored in `annie_mei.user_settings` and `annie_mei.guild_settings`.

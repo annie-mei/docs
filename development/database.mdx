@@ -288,14 +288,22 @@ sqlx migrate info
   </Accordion>
 
   <Accordion title="Migration failures">
-    Check the auth service migration state from the auth repo:
+    For bot startup migration failures, check the `cargo run` startup output for the failing SQLx migration and verify the database user can create the `annie_mei` schema and tables.
+
+    Inspect the bot migration table from the bot repo database connection:
+
+    ```bash
+    psql $DATABASE_URL -c "SELECT version, description, success FROM annie_mei._sqlx_migrations ORDER BY installed_on DESC;"
+    ```
+
+    For auth service OAuth migration failures, check migration state from the auth repo:
 
     ```bash
     cd ../auth
     sqlx migrate info
     ```
 
-    For persistent issues, inspect the `_sqlx_migrations` table directly.
+    For persistent auth issues, inspect the auth service `_sqlx_migrations` table directly.
   </Accordion>
 
   <Accordion title="Pool exhaustion">
