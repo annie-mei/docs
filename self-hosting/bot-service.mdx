@@ -11,8 +11,9 @@ This page covers the main `annie-mei` service in the repository root.
 The bot service:
 
 - connects to Discord and registers slash commands
-- handles `/ping`, `/help`, `/anime`, `/manga`, `/search`, `/recommend`, `/character`, `/songs`, `/register`, `/unregister`, and `/whoami`
+- handles `/ping`, `/help`, `/anime`, `/manga`, `/search`, `/recommend`, `/character`, `/songs`, `/register`, `/unregister`, `/whoami`, and `/settings`
 - connects to PostgreSQL with an async connection pool
+- runs bot-owned SQLx migrations for Annie Mei settings tables
 - connects to Redis for API response caching
 - builds the AniList OAuth start link that sends members to the auth service
 
@@ -92,7 +93,7 @@ Use [Environment Variables](/deployment/environment-variables) for the full bot 
     cargo run
     ```
 
-    On startup, the bot will connect to PostgreSQL, load OAuth configuration, and register slash commands.
+    On startup, the bot will connect to PostgreSQL, run its settings migrations, load OAuth configuration, and register slash commands.
   </Step>
 </Steps>
 
@@ -103,6 +104,7 @@ Try these slash commands after the bot is online:
 ```text
 /ping
 /anime search:Attack on Titan
+/settings
 /register
 ```
 

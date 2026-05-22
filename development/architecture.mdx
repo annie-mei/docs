@@ -35,7 +35,7 @@ src/
 ├── models/          # Data types, DB models, API responses
 ├── utils/           # Shared utilities, API clients, DB helpers
 └── main.rs          # Bot entry point and event routing
-migrations/          # Historical bot migrations for the removed legacy users table
+migrations/          # Bot-owned SQLx migrations, currently settings tables
 ```
 
 ### Commands Directory
@@ -64,6 +64,9 @@ src/commands/
 │   ├── mod.rs
 │   ├── command.rs
 │   └── prompts.rs
+├── settings/
+│   ├── mod.rs
+│   └── command.rs      # Interactive settings panel and component handling
 ├── songs/
 │   ├── command.rs
 │   ├── fetcher.rs
@@ -88,6 +91,7 @@ Data structures for API responses and database models:
 src/models/
 ├── db/
 │   ├── oauth_credential.rs  # SQLx model for auth-service oauth_credentials
+│   ├── settings.rs          # SQLx persistence for user and guild settings
 │   └── mod.rs
 ├── anilist_anime.rs          # AniList anime API response types
 ├── anilist_character.rs     # AniList character API response types
@@ -130,6 +134,7 @@ src/utils/
 ├── posthog.rs           # PostHog LLM analytics telemetry
 ├── privacy.rs           # User ID hashing for Sentry
 ├── redis.rs             # Redis caching layer
+├── settings.rs          # Runtime settings resolution helpers
 ├── spotify.rs           # Spotify API integration
 ├── statics.rs           # Constants and environment variables
 ├── tls.rs               # TLS provider setup
@@ -138,10 +143,10 @@ src/utils/
 
 ## Database access
 
-Annie Mei uses [SQLx](https://github.com/launchbadge/sqlx) for PostgreSQL queries. The bot shares a database with the auth service and reads from the `oauth_credentials` table directly via async SQL queries.
+Annie Mei uses [SQLx](https://github.com/launchbadge/sqlx) for PostgreSQL queries. The bot shares a database with the auth service, reads from the auth-service-owned `oauth_credentials` table, and owns settings tables under the `annie_mei` schema.
 
 <Note>
-  The bot previously used Diesel ORM. As of v2.15.0, the bot has no Diesel-managed tables. The current OAuth schema migrations live in the companion auth service repo and run during auth-service startup. The bot repo's legacy `users` table was dropped in migration `2026-05-02-000001_drop_users_table`.
+  The bot previously used Diesel ORM. The current bot uses SQLx migrations at startup for `annie_mei.user_settings` and `annie_mei.guild_settings`. OAuth schema migrations still live in the companion auth service repo and run during auth-service startup.
 </Note>
 
 ## Entry Points
@@ -154,6 +159,7 @@ The bot's execution flow starts in `src/main.rs`:
    - Initialize Sentry error tracking
    - Set up tracing/logging
    - Create SQLx connection pool
+   - Run bot-owned SQLx migrations
    - Create Discord client with data (pool, LLM client, OAuth config)
 
 2. **Event Handler** (`main.rs`)
@@ -163,7 +169,7 @@ The bot's execution flow starts in `src/main.rs`:
 3. **Command Routing** (`main.rs`)
    - Matches command names to handler functions
    - Configures tracing spans for observability
-   - Commands: `ping`, `help`, `songs`, `manga`, `anime`, `search`, `recommend`, `character`, `register`, `unregister`, `whoami`
+   - Commands: `ping`, `help`, `songs`, `manga`, `anime`, `search`, `recommend`, `character`, `register`, `unregister`, `whoami`, `settings`
 
 ## Environment Configuration
 

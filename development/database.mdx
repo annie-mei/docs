@@ -4,10 +4,10 @@ description: Understand database access, shared OAuth schema, and migrations for
 icon: database
 ---
 
-Annie Mei uses [SQLx](https://github.com/launchbadge/sqlx) for PostgreSQL database access and [PostgreSQL](https://www.postgresql.org/) for data storage. The bot uses an async connection pool for queries.
+Annie Mei uses [SQLx](https://github.com/launchbadge/sqlx) for PostgreSQL database access and [PostgreSQL](https://www.postgresql.org/) for data storage. The bot uses an async connection pool for queries and runs its own SQLx migrations at startup.
 
 <Warning>
-  As of v2.15.0, the bot has no bot-owned tables. The legacy `users` table was dropped in migration `2026-05-02-000001_drop_users_table`. The bot reads OAuth-linked account data from the auth-service-owned `oauth_credentials` table using `sqlx::query_as` (see `src/models/db/oauth_credential.rs`).
+  The bot owns settings tables in the `annie_mei` schema and reads OAuth-linked account data from auth-service-owned tables in the shared database. Keep bot and auth migrations coordinated when changing shared behavior.
 </Warning>
 
 ## Overview
@@ -54,23 +54,33 @@ pub async fn create_pool() -> DbPool {
 
 ## Migration ownership
 
-The bot service does not run migrations on startup and has no bot-owned tables. It connects to a database that already contains the auth-service-owned OAuth schema.
+The bot service runs migrations from its own `migrations/` directory during startup. The current bot-owned migration creates settings tables in the `annie_mei` schema:
+
+```text
+migrations/
+├── 20260516000001_create_settings_tables.up.sql
+└── 20260516000001_create_settings_tables.down.sql
+```
+
+These migrations create:
+
+- `annie_mei.user_settings` for per-member preferences
+- `annie_mei.guild_settings` for Discord server preferences
+
+The bot still connects to a database that already contains the auth-service-owned OAuth schema.
 
 The current OAuth schema migrations live in the companion auth service repo under `migrations/`. The auth service runs them on startup with `sqlx::migrate!("./migrations")`.
 
 <Warning>
-  Do not use the bot repo's historical migrations to prepare the OAuth schema. They only document the removed legacy `users` table and do not create `oauth_credentials` or `oauth_sessions`.
+  Do not use the bot repo's migrations to prepare the OAuth schema. The bot migrations only create bot-owned settings tables and do not create `oauth_credentials` or `oauth_sessions`.
 </Warning>
 
-### Bot repo historical migrations
+### Bot repo migrations
 
 ```
 migrations/
-├── 00000000000000_diesel_initial_setup/
-├── 2023-01-22-200806_create_users/
-├── 2023-02-02-075156_remove_unique_constraint_from_user/
-├── 2023-02-02-080943_users_add_index_discord_id_anilist_id/
-└── 2026-05-02-000001_drop_users_table/
+├── 20260516000001_create_settings_tables.up.sql
+└── 20260516000001_create_settings_tables.down.sql
 ```
 
 ### Auth repo schema migrations
