@@ -57,7 +57,7 @@ DATABASE_URL=postgres://user:password@db.example.com/annie_mei?sslmode=require
 The auth service owns the current OAuth schema migrations. The schema is defined in:
 - `auth/migrations/` (SQLx migration files in the auth service repo)
 
-The bot repo's `migrations/` directory contains historical migrations for the removed legacy `users` table and is not used to prepare the OAuth schema.
+The bot repo's `migrations/` directory contains bot-owned migrations for settings tables in the `annie_mei` schema. It is not used to prepare the OAuth schema.
 
 The bot reads from the auth-service-owned `oauth_credentials` table. The database stores:
 - OAuth credentials linking Discord accounts to AniList accounts

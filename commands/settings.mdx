@@ -1,0 +1,73 @@
+---
+title: /settings
+description: Open an interactive panel for your Annie Mei preferences.
+icon: settings
+---
+
+## Overview
+
+The `/settings` command opens a private settings panel where you can review and update Annie Mei preferences.
+
+## Command syntax
+
+```text
+/settings
+```
+
+This command takes no parameters.
+
+## What you can change
+
+<ResponseField name="Title display">
+  Choose which AniList title variant Annie Mei should prefer in media embeds.
+
+  Allowed values: `matched`, `romaji`, `english`, `native`.
+</ResponseField>
+
+<ResponseField name="Analytics privacy">
+  Choose whether supported analytics may include raw user-provided content.
+
+  Allowed user values: `standard`, `opted_out`.
+</ResponseField>
+
+<ResponseField name="Guild scores">
+  Control whether server score displays are enabled and whether you participate.
+
+  User values: `enabled`, `opted_out`.
+
+  Server values: `enabled`, `disabled`.
+</ResponseField>
+
+## How settings resolve
+
+The settings panel shows your user override, the server override when available, and the effective value Annie Mei will use.
+
+| Setting | Resolution behavior |
+|---------|---------------------|
+| Title display | Your user setting wins, then the server setting, then the default `matched` value |
+| Analytics privacy | User-only; defaults to `standard` |
+| Guild scores | A server-level `disabled` value wins, then a user `opted_out` value, then enabled/default values |
+
+<Note>
+  Server settings are only available in a Discord server. You need **Manage Server** permission to change server settings.
+</Note>
+
+## Usage examples
+
+```text
+/settings
+```
+
+Use the buttons to choose a category, then use the select menus to update a user or server value.
+
+## Privacy details
+
+The `analytics_privacy` setting controls supported analytics and observability paths that can include raw query, prompt, or output content. Annie Mei still keeps pseudonymous operational telemetry, such as hashed user identifiers, when needed to run and troubleshoot the bot.
+
+Use `guild_scores` with `opted_out` if you do not want your linked AniList score and status included in server media lookups.
+
+## Source code reference
+
+Implementation: `src/commands/settings/command.rs`
+
+The SQLx persistence model lives in `src/models/db/settings.rs`, and runtime resolution helpers live in `src/utils/settings.rs`. Values are stored in `annie_mei.user_settings` and `annie_mei.guild_settings`.

@@ -36,6 +36,9 @@ Use Annie Mei slash commands to search AniList and tie your AniList profile to y
   <Card title="/whoami" icon="user-search" href="/commands/whoami">
     Check which AniList account is currently linked
   </Card>
+  <Card title="/settings" icon="settings" href="/commands/settings">
+    Review and update user or server preferences
+  </Card>
   <Card title="/help" icon="circle-question" href="/commands/help">
     Browse command reference and usage tips
   </Card>
@@ -91,7 +94,7 @@ When you link your AniList account with `/register`, `/anime` and `/manga` can s
 - list activity inside the Discord server where the command runs
 
 <Note>
-  Linking one member is enough for `/anime` and `/manga` to include status in that server.
+  Linking one member is enough for `/anime` and `/manga` to include status in that server. Use `/settings` to opt out of guild score display or, with **Manage Server** permission, disable server score displays.
 </Note>
 
 ## Terms and privacy
@@ -106,6 +109,9 @@ By adding Annie Mei to a Discord server or using its slash commands, you agree t
   </Step>
   <Step title="Confirm your link">
     Use `/whoami` to verify the connected AniList account.
+  </Step>
+  <Step title="Review preferences">
+    Use `/settings` to choose title display, analytics privacy, and guild score options.
   </Step>
   <Step title="Search media">
     Use `/anime`, `/manga`, or `/search` to find titles by name or AniList ID.

@@ -137,7 +137,7 @@ SENTRY_TRACES_SAMPLE_RATE=0.0
 ```
 
 <Warning>
-  The bot and auth service must point at the same PostgreSQL database. The auth service owns the OAuth tables, and the bot reads `oauth_credentials` from that shared database for `/whoami`, `/unregister`, and member status overlays.
+  The bot and auth service must point at the same PostgreSQL database. The auth service owns the OAuth tables, while the bot owns `annie_mei.user_settings` and `annie_mei.guild_settings`. The bot reads `oauth_credentials` from the shared database for `/whoami`, `/unregister`, and member status overlays.
 </Warning>
 
 ## Where these values are used

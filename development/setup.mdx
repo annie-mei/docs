@@ -135,7 +135,7 @@ OAUTH_CONTEXT_TTL_SECONDS=300
   </Step>
 
   <Step title="Run Migrations">
-    The bot does not run migrations and does not own database tables. If you are testing `/register`, run the auth service once to apply its SQLx migrations to the shared database.
+    The bot runs its own SQLx migrations at startup for settings tables. If you are testing `/register`, run the auth service once to apply its OAuth SQLx migrations to the shared database.
 
     ```bash
     cd ../auth

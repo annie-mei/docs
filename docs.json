@@ -78,6 +78,7 @@
           "commands/register",
           "commands/unregister",
           "commands/whoami",
+          "commands/settings",
           "commands/help"
         ]
       },
