@@ -75,6 +75,7 @@
           "commands/recommend",
           "commands/songs",
           "commands/character",
+          "commands/studio",
           "commands/register",
           "commands/unregister",
           "commands/whoami",

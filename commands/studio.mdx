@@ -1,0 +1,84 @@
+---
+title: /studio
+description: Look up an anime production studio on AniList
+icon: building-2
+tag: New in 3.9.0
+---
+
+Use `/studio` to look up an anime production studio by name or AniList studio ID.
+
+## Command syntax
+
+```text
+/studio search:<AniList ID or studio name>
+```
+
+## Parameters
+
+<ParamField path="search" type="string" required>
+  AniList studio ID or studio name
+</ParamField>
+
+## Usage examples
+
+<Tabs>
+  <Tab title="By name">
+    ```text
+    /studio search:Kyoto Animation
+    ```
+    Searches AniList for Kyoto Animation.
+  </Tab>
+  <Tab title="By AniList ID">
+    ```text
+    /studio search:2
+    ```
+    Returns the studio with AniList ID `2`.
+  </Tab>
+</Tabs>
+
+## Response data
+
+Annie Mei returns a Discord embed with the available studio information:
+
+<ResponseField name="Studio name">
+  The studio name, linked to its AniList page
+</ResponseField>
+
+<ResponseField name="Favourites" optional>
+  The number of AniList users who marked the studio as a favourite
+</ResponseField>
+
+<ResponseField name="Notable anime" optional>
+  Up to five popular anime where AniList lists the studio as a main studio. Adult titles are omitted.
+</ResponseField>
+
+## Search tips
+
+<Tip>
+  Use the numeric ID from an AniList studio URL for an exact match:
+
+  `https://anilist.co/studio/2` → Use `/studio search:2`
+</Tip>
+
+If Annie Mei cannot find a match, try the studio's full name or its AniList ID.
+
+## Source code reference
+
+Implementation: `src/commands/studio/command.rs`
+
+The `register()` function defines the command and its required search option:
+
+```rust
+pub fn register() -> CreateCommand {
+    CreateCommand::new("studio")
+        .description("Look up an anime production studio on AniList")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "search",
+                "AniList studio ID or studio name",
+            )
+            .required(true),
+        )
+}
+```
