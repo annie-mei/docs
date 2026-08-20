@@ -1,6 +1,6 @@
 # Annie Mei release docs webhook
 
-This project plugin registers a durable Amp webhook in a controller thread belonging to the Annie Mei docs project. A signed stable release event from `annie-mei/annie-mei` starts a fresh medium-mode orb thread that reviews and updates this documentation.
+This project plugin registers a durable Amp webhook in a controller thread belonging to the Annie Mei docs project. A signed stable release event from `annie-mei/annie-mei` starts a fresh medium-mode orb thread that reviews the released bot and current auth service implementations, then updates this documentation.
 
 ## Configure
 
@@ -21,6 +21,7 @@ Treat both the Amp webhook URL and signing secret as credentials. Do not commit 
 - Only `published` stable tags matching `vX.Y.Z` are accepted.
 - GitHub HMAC-SHA256 signatures are verified before parsing event fields.
 - Release tags are persisted in the controller orb to suppress redeliveries and recover partially-started threads.
+- Each release thread inspects the exact bot release tag and records the current `annie-mei/auth` commit it uses. The auth service has no release tags of its own.
 - A release thread opens a docs pull request when changes are needed and reports a no-op otherwise. It never merges automatically.
 
 Run the plugin's unit tests with:

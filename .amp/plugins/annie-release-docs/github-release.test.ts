@@ -88,5 +88,7 @@ test('buildDocumentationPrompt contains only deterministic release context', () 
 
   expect(prompt).toContain('[annie-release-docs:v3.10.0]')
   expect(prompt).toContain('/tmp/annie-mei-source-v3.10.0')
+  expect(prompt).toContain('/tmp/annie-mei-auth-v3.10.0')
+  expect(prompt).toContain('record the exact commit SHA you inspected')
   expect(prompt).toContain('Never merge the pull request.')
 })
