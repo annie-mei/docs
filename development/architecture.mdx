@@ -71,6 +71,10 @@ src/commands/
 │   ├── command.rs
 │   ├── fetcher.rs
 │   └── mod.rs
+├── studio/
+│   ├── command.rs
+│   ├── fetcher.rs
+│   └── mod.rs
 ├── register/
 │   └── command.rs      # OAuth link command and response handling
 ├── help.rs
@@ -98,6 +102,7 @@ src/models/
 ├── anilist_common.rs        # Shared AniList types
 ├── anilist_manga.rs         # AniList manga API response types
 ├── anilist_recommendation.rs # AniList recommendation API response types
+├── anilist_studio.rs        # AniList studio API response and embed types
 ├── character_id_response.rs # Character ID-only lookup response
 ├── character_response.rs   # Character full-lookup response
 ├── fetcher.rs              # External API client helpers
@@ -169,7 +174,7 @@ The bot's execution flow starts in `src/main.rs`:
 3. **Command Routing** (`main.rs`)
    - Matches command names to handler functions
    - Configures tracing spans for observability
-   - Commands: `ping`, `help`, `songs`, `manga`, `anime`, `search`, `recommend`, `character`, `register`, `unregister`, `whoami`, `settings`
+   - Commands: `ping`, `help`, `songs`, `manga`, `anime`, `search`, `recommend`, `character`, `studio`, `register`, `unregister`, `whoami`, `settings`
 
 ## Environment Configuration
 

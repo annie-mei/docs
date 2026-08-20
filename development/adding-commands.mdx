@@ -87,6 +87,7 @@ Let's create a `/ping` style command as an example.
     pub mod response;
     pub mod search;
     pub mod songs;
+    pub mod studio;
     pub mod traits;
     pub mod unregister;
     pub mod whoami;
@@ -108,6 +109,7 @@ Let's create a `/ping` style command as an example.
             commands::search::command::register(),
             commands::recommend::command::register(),
             commands::character::command::register(),
+            commands::studio::command::register(),
             commands::register::command::register(),
             commands::unregister::register(),
             commands::whoami::register(),
@@ -135,6 +137,7 @@ Let's create a `/ping` style command as an example.
         "search" => commands::search::command::run(&ctx, &mut command).await,
         "recommend" => commands::recommend::command::run(&ctx, &mut command).await,
         "character" => commands::character::command::run(&ctx, &mut command).await,
+        "studio" => commands::studio::command::run(&ctx, &mut command).await,
         "register" => commands::register::command::run(&ctx, &mut command).await,
         "unregister" => commands::unregister::run(&ctx, &mut command).await,
         "whoami" => commands::whoami::run(&ctx, &mut command).await,
