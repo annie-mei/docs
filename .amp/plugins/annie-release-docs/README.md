@@ -1,0 +1,30 @@
+# Annie Mei release docs webhook
+
+This project plugin registers a durable Amp webhook in a controller thread belonging to the Annie Mei docs project. A signed stable release event from `annie-mei/annie-mei` starts a fresh medium-mode orb thread that reviews and updates this documentation.
+
+## Configure
+
+1. Generate a strong random webhook secret.
+2. Add it to the docs Amp project's secrets as `ANNIE_MEI_RELEASE_WEBHOOK_SECRET`.
+3. Start a controller orb thread in the docs project and leave it unarchived.
+4. Run **release docs: Show Annie Mei release webhook URL** from that thread's command palette.
+5. In the `annie-mei/annie-mei` repository webhook settings, add the displayed URL with:
+   - **Content type:** `application/json`
+   - **Secret:** the same `ANNIE_MEI_RELEASE_WEBHOOK_SECRET` value
+   - **Events:** Releases only
+   - **Active:** enabled
+
+Treat both the Amp webhook URL and signing secret as credentials. Do not commit or log them.
+
+## Behavior
+
+- Only `published` stable tags matching `vX.Y.Z` are accepted.
+- GitHub HMAC-SHA256 signatures are verified before parsing event fields.
+- Release tags are persisted in the controller orb to suppress redeliveries and recover partially-started threads.
+- A release thread opens a docs pull request when changes are needed and reports a no-op otherwise. It never merges automatically.
+
+Run the plugin's unit tests with:
+
+```bash
+bun test ./.amp/plugins/annie-release-docs/*.test.ts
+```
