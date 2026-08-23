@@ -7,7 +7,7 @@ This project plugin registers a durable Amp webhook in a controller thread belon
 1. Generate a strong random webhook secret.
 2. Add it to the docs Amp project's secrets as `ANNIE_MEI_RELEASE_WEBHOOK_SECRET`.
 3. Start a controller orb thread in the docs project and leave it unarchived.
-4. Run **release docs: Configure Annie Mei release webhook** from that thread's command palette. This writes a controller marker only in that orb and displays its private URL.
+4. Run **release docs: Configure Annie Mei release webhook** from that thread's command palette. The command makes the controller thread private, writes a marker only in that orb, and displays its private URL.
 5. In the `annie-mei/annie-mei` repository webhook settings, add the displayed URL with:
    - **Content type:** `application/json`
    - **Secret:** the same `ANNIE_MEI_RELEASE_WEBHOOK_SECRET` value

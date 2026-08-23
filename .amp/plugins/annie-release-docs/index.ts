@@ -69,10 +69,11 @@ export default async function (amp: PluginAPI) {
         return
       }
 
+      await ctx.thread.setVisibility('private')
       await store.enableController(ctx.thread.id)
       const registration = await ensureWebhook()
       await ctx.ui.notify(
-        `This orb is now the release controller. Configure this URL for Annie Mei GitHub release events and keep it private:\n${registration.url}`,
+        `This private orb is now the release controller. Configure this URL for Annie Mei GitHub release events and keep it private:\n${registration.url}`,
       )
     },
   )
