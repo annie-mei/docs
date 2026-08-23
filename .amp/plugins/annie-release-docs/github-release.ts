@@ -77,6 +77,7 @@ export function buildDocumentationPrompt(release: PublishedRelease): string {
   const marker = `[annie-release-docs:${release.tag}]`
   const sourcePath = `/tmp/annie-mei-source-${release.tag}`
   const authSourcePath = `/tmp/annie-mei-auth-${release.tag}`
+  const branch = `annie-211-docs-${release.tag.slice(1).replaceAll('.', '-')}`
 
   return `${marker}
 
@@ -95,7 +96,8 @@ Requirements:
 - Update every page affected by verified bot changes in ${release.tag} or relevant auth-service behavior; do not invent changes or add release-specific noise when the documentation is already current.
 - Check auth-owned OAuth flows, schema and migrations, shared configuration, health endpoints, and deployment behavior when they are relevant to documented Annie Mei behavior.
 - Run the relevant Mintlify validation, including \`mint broken-links\`.
-- If documentation changes are needed, create a branch, commit the changes, push the branch, and open a pull request titled \`docs: update for Annie Mei ${release.tag}\`. Link the release at https://github.com/annie-mei/annie-mei/releases/tag/${release.tag} and include the inspected auth commit SHA in the pull request. Never merge the pull request.
+- ANNIE-211 is the approved umbrella Linear ticket for these automated documentation updates. Do not create another ticket.
+- If documentation changes are needed, create branch \`${branch}\`, commit and push the changes, and open a pull request titled \`[ANNIE-211]/Update docs for Annie Mei ${release.tag}\`. Link the release at https://github.com/annie-mei/annie-mei/releases/tag/${release.tag} and include the inspected auth commit SHA in the pull request. Never merge the pull request.
 - If no documentation changes are needed, do not create an empty commit or pull request. Report the inspected bot release range and auth commit SHA, and explain why the docs remain current.
 
 This task was triggered by verified GitHub delivery ${release.deliveryID}.`

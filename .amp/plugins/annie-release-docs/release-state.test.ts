@@ -18,6 +18,19 @@ async function createStore(): Promise<ReleaseStateStore> {
 }
 
 describe('ReleaseStateStore', () => {
+  test('enables the webhook controller only in its local state directory', async () => {
+    const controller = await createStore()
+    const otherOrb = await createStore()
+
+    expect(await controller.controllerThreadID()).toBeNull()
+    expect(await otherOrb.controllerThreadID()).toBeNull()
+
+    await controller.enableController('T-controller')
+
+    expect(await controller.controllerThreadID()).toBe('T-controller')
+    expect(await otherOrb.controllerThreadID()).toBeNull()
+  })
+
   test('claims a release once', async () => {
     const store = await createStore()
 
