@@ -4,8 +4,6 @@ import type { PublishedRelease } from './github-release'
 import { buildDocumentationPrompt, promptMarker } from './github-release'
 import type { ReleaseClaim, ReleaseState } from './release-state'
 
-const STARTING_TIMEOUT_MS = 5 * 60 * 1000
-
 export interface ReleaseStatePersistence {
   claim(tag: string, deliveryID: string): Promise<ReleaseClaim>
   save(tag: string, state: ReleaseState): Promise<void>
@@ -14,10 +12,6 @@ export interface ReleaseStatePersistence {
 export interface ReleaseThreadRuntime {
   createThread(parentThreadID: ThreadID): Promise<PluginThread>
   getThread(threadID: ThreadID): PluginThread
-}
-
-function isStale(state: ReleaseState): boolean {
-  return Date.now() - Date.parse(state.updatedAt) >= STARTING_TIMEOUT_MS
 }
 
 async function hasReleasePrompt(thread: PluginThread, marker: string): Promise<boolean> {
@@ -58,8 +52,10 @@ export class ReleaseProcessor {
       thread = this.runtime.getThread(state.threadID as ThreadID)
       this.createdThreads.set(release.tag, thread.id)
     } else {
-      if (claim.kind === 'existing' && !isStale(state)) {
-        throw new Error(`Documentation thread creation is already in progress for ${release.tag}.`)
+      if (claim.kind === 'existing') {
+        throw new Error(
+          `Documentation thread creation for ${release.tag} has an ambiguous starting claim; refusing to create a duplicate thread.`,
+        )
       }
 
       thread = await this.runtime.createThread(parentThreadID)

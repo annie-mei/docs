@@ -100,4 +100,34 @@ describe('ReleaseProcessor', () => {
     expect(created.messages).toHaveLength(1)
     expect(store.state).toMatchObject({ status: 'started', threadID: 'T-created' })
   })
+
+  test('fails closed after a restart loses an unpersisted created thread ID', async () => {
+    const store = new FakeStore()
+    store.failSaves = 2
+    const created = fakeThread('T-created' as ThreadID)
+    let createCalls = 0
+    const runtime = {
+      async createThread() {
+        createCalls += 1
+        return created.thread
+      },
+      getThread() {
+        return created.thread
+      },
+    }
+
+    const firstProcessor = new ReleaseProcessor(store, runtime)
+    await expect(firstProcessor.process(release, parentThreadID, () => {})).rejects.toThrow(
+      'disk unavailable',
+    )
+
+    store.state = { ...store.state!, updatedAt: '2000-01-01T00:00:00.000Z' }
+    const restartedProcessor = new ReleaseProcessor(store, runtime)
+    await expect(restartedProcessor.process(release, parentThreadID, () => {})).rejects.toThrow(
+      'refusing to create a duplicate thread',
+    )
+
+    expect(createCalls).toBe(1)
+    expect(created.messages).toHaveLength(1)
+  })
 })
