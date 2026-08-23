@@ -7,6 +7,7 @@ import type { ReleaseClaim, ReleaseState } from './release-state'
 export interface ReleaseStatePersistence {
   claim(tag: string, deliveryID: string): Promise<ReleaseClaim>
   save(tag: string, state: ReleaseState): Promise<void>
+  clearStarting(tag: string, updatedAt: string): Promise<void>
 }
 
 export interface ReleaseThreadRuntime {
@@ -58,7 +59,12 @@ export class ReleaseProcessor {
         )
       }
 
-      thread = await this.runtime.createThread(parentThreadID)
+      try {
+        thread = await this.runtime.createThread(parentThreadID)
+      } catch (error) {
+        await this.store.clearStarting(release.tag, state.updatedAt)
+        throw error
+      }
       this.createdThreads.set(release.tag, thread.id)
       state = {
         deliveryID: release.deliveryID,

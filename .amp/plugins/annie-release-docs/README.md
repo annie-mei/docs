@@ -22,7 +22,7 @@ Treat both the Amp webhook URL and signing secret as credentials. Do not commit 
 - Only the explicitly configured controller orb registers a durable webhook; spawned docs orbs remain listeners-free.
 - GitHub HMAC-SHA256 signatures are verified before parsing event fields.
 - Release tags are persisted in the controller orb to suppress redeliveries and recover partially-started threads.
-- Ambiguous `starting` claims fail closed instead of creating another billable thread. Inspect the existing child thread before manually removing a stuck release state from `~/.local/state/amp/annie-release-docs/`.
+- A definite child-thread creation failure releases its claim for retry. Ambiguous `starting` claims after process loss fail closed instead of creating another billable thread; inspect the existing child thread before manually removing a stuck release state from `~/.local/state/amp/annie-release-docs/`.
 - Each release thread inspects the exact bot release tag and records the current `annie-mei/auth` commit it uses. The auth service has no release tags of its own.
 - A release thread opens a docs pull request when changes are needed and reports a no-op otherwise. It never merges automatically.
 

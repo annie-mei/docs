@@ -32,6 +32,12 @@ class FakeStore implements ReleaseStatePersistence {
     }
     this.state = { ...state, updatedAt: new Date().toISOString() }
   }
+
+  async clearStarting(_tag: string, updatedAt: string): Promise<void> {
+    if (this.state?.status === 'starting' && this.state.updatedAt === updatedAt) {
+      this.state = undefined
+    }
+  }
 }
 
 function fakeThread(id: ThreadID) {
@@ -129,5 +135,30 @@ describe('ReleaseProcessor', () => {
 
     expect(createCalls).toBe(1)
     expect(created.messages).toHaveLength(1)
+  })
+
+  test('releases the claim when thread creation definitively fails', async () => {
+    const store = new FakeStore()
+    const created = fakeThread('T-created' as ThreadID)
+    let createCalls = 0
+    const processor = new ReleaseProcessor(store, {
+      async createThread() {
+        createCalls += 1
+        if (createCalls === 1) throw new Error('orb provisioning failed')
+        return created.thread
+      },
+      getThread() {
+        return created.thread
+      },
+    })
+
+    await expect(processor.process(release, parentThreadID, () => {})).rejects.toThrow(
+      'orb provisioning failed',
+    )
+    await processor.process(release, parentThreadID, () => {})
+
+    expect(createCalls).toBe(2)
+    expect(created.messages).toHaveLength(1)
+    expect(store.state).toMatchObject({ status: 'started', threadID: 'T-created' })
   })
 })

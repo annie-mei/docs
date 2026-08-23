@@ -79,4 +79,11 @@ export class ReleaseStateStore {
     await writeFile(temporaryPath, `${JSON.stringify(updatedState)}\n`, { mode: 0o600 })
     await rename(temporaryPath, path)
   }
+
+  async clearStarting(tag: string, updatedAt: string): Promise<void> {
+    const state = await this.read(tag)
+    if (state.status === 'starting' && state.updatedAt === updatedAt) {
+      await rm(this.path(tag))
+    }
+  }
 }

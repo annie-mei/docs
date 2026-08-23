@@ -57,4 +57,15 @@ describe('ReleaseStateStore', () => {
       threadID: 'T-test-thread',
     })
   })
+
+  test('clears only the unchanged starting claim', async () => {
+    const store = await createStore()
+    const claim = await store.claim('v3.10.0', 'delivery-1')
+
+    await store.clearStarting('v3.10.0', 'different timestamp')
+    expect(await store.read('v3.10.0')).toEqual(claim.state)
+
+    await store.clearStarting('v3.10.0', claim.state.updatedAt)
+    await expect(store.read('v3.10.0')).rejects.toMatchObject({ code: 'ENOENT' })
+  })
 })
