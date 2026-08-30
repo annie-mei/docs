@@ -24,7 +24,7 @@ Treat both the Amp webhook URL and signing secret as credentials. Do not commit 
 - Release tags are persisted in the controller orb to suppress redeliveries and recover partially-started threads.
 - A definite child-thread creation failure releases its claim for retry. Ambiguous `starting` claims after process loss fail closed instead of creating another billable thread; inspect the existing child thread before manually removing a stuck release state from `~/.local/state/amp/annie-release-docs/`.
 - Each release thread inspects the exact bot release tag and records the current `annie-mei/auth` commit it uses. The auth service has no release tags of its own.
-- A release thread opens a docs pull request when changes are needed and reports a no-op otherwise. It never merges automatically.
+- A release thread opens a docs pull request when changes are needed, resolves automated review feedback and required checks, and merges it when clean. It reports a no-op otherwise.
 
 Run the plugin's unit tests with:
 

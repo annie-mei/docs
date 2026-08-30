@@ -97,7 +97,8 @@ Requirements:
 - Check auth-owned OAuth flows, schema and migrations, shared configuration, health endpoints, and deployment behavior when they are relevant to documented Annie Mei behavior.
 - Run the relevant Mintlify validation, including \`mint broken-links\`.
 - ANNIE-211 is the approved umbrella Linear ticket for these automated documentation updates. Do not create another ticket.
-- If documentation changes are needed, create branch \`${branch}\`, commit and push the changes, and open a pull request titled \`[ANNIE-211]/Update docs for Annie Mei ${release.tag}\`. Link the release at https://github.com/annie-mei/annie-mei/releases/tag/${release.tag} and include the inspected auth commit SHA in the pull request. Never merge the pull request.
+- If documentation changes are needed, create branch \`${branch}\`, commit and push the changes, and open a pull request titled \`[ANNIE-211]/Update docs for Annie Mei ${release.tag}\`. Link the release at https://github.com/annie-mei/annie-mei/releases/tag/${release.tag} and include the inspected auth commit SHA in the pull request.
+- Carry the pull request through completion: wait for automated reviews and required checks, address valid findings, rerun validation, and continue until all review threads and required checks are resolved. Then merge using the repository's normal merge method. Do not bypass protections, dismiss valid findings, force push, or merge while required checks are failing or pending.
 - If no documentation changes are needed, do not create an empty commit or pull request. Report the inspected bot release range and auth commit SHA, and explain why the docs remain current.
 
 This task was triggered by verified GitHub delivery ${release.deliveryID}.`
