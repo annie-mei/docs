@@ -18,6 +18,7 @@ The auth service:
 - handles the AniList callback
 - exchanges the auth code for AniList tokens
 - fetches the AniList viewer ID and stores the linked credentials
+- owns `annie_auth.oauth_credentials`, `annie_auth.oauth_sessions`, and `annie_auth._sqlx_migrations` in the shared PostgreSQL database
 - serves `GET /healthz` for liveness and `GET /readyz` for database readiness
 
 ## Before you start
@@ -77,7 +78,7 @@ SENTRY_TRACES_SAMPLE_RATE=0.0
     cargo run
     ```
 
-    On startup, the service connects to PostgreSQL, runs SQLx migrations, and serves the AniList OAuth routes.
+    On startup, the service connects to PostgreSQL, creates the `annie_auth` schema when needed, runs SQLx migrations with `search_path=annie_auth,public`, and serves the AniList OAuth routes.
   </Step>
 
   <Step title="Verify the health endpoints">
@@ -85,8 +86,14 @@ SENTRY_TRACES_SAMPLE_RATE=0.0
     curl http://127.0.0.1:8000/healthz
     curl http://127.0.0.1:8000/readyz
     ```
+
+    `/healthz` reports process liveness without checking PostgreSQL. `/readyz` waits up to two seconds for a database check and returns `503 Service Unavailable` when PostgreSQL is unavailable.
   </Step>
 </Steps>
+
+## Deployment health check
+
+The auth repo's `railway.toml` binds Rocket to `0.0.0.0:$PORT`, uses `/readyz` as the deployment health check, allows 60 seconds for deployment health, and restarts the service on failure up to five times.
 
 ## Verify the OAuth flow
 

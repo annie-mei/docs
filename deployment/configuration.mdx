@@ -124,7 +124,7 @@ DATABASE_URL=postgres://user:password@host:5432/database?sslmode=require
 
 ### Running Migrations
 
-The bot expects the database schema to already be in place. The auth service owns and runs the OAuth schema migrations on startup. Use the auth service repo's SQLx migrations when setting up or modifying the shared OAuth schema.
+The auth service creates `annie_auth` and runs its OAuth schema migrations on startup with migration history in `annie_auth._sqlx_migrations`. The bot creates `annie_mei` and runs its settings migrations on startup with separate migration history. Start the auth service before the bot when deploying a fresh shared database.
 
 ## Cache Setup
 
@@ -180,12 +180,13 @@ The Discord bot does not expose an HTTP listener. Operational health checks shou
 ```json
 {
   "status": "healthy",
-  "version": "1.2.0",
   "services": {
     "database": "up"
   }
 }
 ```
+
+`/healthz` uses the same shape with `"database": "not_checked"`. An unavailable or timed-out readiness database check returns `503` with `"status": "unhealthy"` and `"database": "down"`.
 
 **HTTP Status Codes**:
 - `200 OK` - The auth service is live or ready, depending on endpoint

@@ -66,7 +66,7 @@ The bot returns an embed with:
 </ResponseField>
 
 <ResponseField name="Thumbnail">
-  Anime cover image from MyAnimeList
+  Anime cover image from MyAnimeList, when available. Missing image data does not prevent the song list from appearing.
 </ResponseField>
 
 <ResponseField name="MyAnimeList Link">
@@ -83,7 +83,7 @@ The bot returns an embed with:
     Using the AniList data, the bot queries MyAnimeList for theme song listings.
   </Step>
   <Step title="Match with Spotify">
-    For each song, the bot searches Spotify to find a track link.
+    The bot checks cached matches, then reuses one Spotify login while it searches the opening and ending songs in the response.
   </Step>
   <Step title="Return embed">
     All songs are formatted into a Discord embed with clickable links.
@@ -113,7 +113,7 @@ The bot returns an embed with:
   </Accordion>
 
   <Accordion title="Missing Spotify links">
-    Not all songs have Spotify matches. The bot will still show:
+    Not all songs have Spotify matches. A temporary Spotify authentication or search failure can also leave a link unavailable. The bot will still show:
     - Song title
     - Artist name
     - Episode range
@@ -150,27 +150,28 @@ MyAnimeList: https://myanimelist.net/anime/38000
   - Only anime openings and endings are supported (no insert songs or OST tracks)
   - Spotify links may be missing if the song isn't on Spotify
   - Very new or niche anime may not have complete song data on MyAnimeList
+  - Malformed or missing MyAnimeList image and episode-range fields are omitted instead of failing the whole response
 </Note>
 
 ## Source Code Reference
 
-Implementation: `src/commands/songs/command.rs:18`
+Implementation: `src/commands/songs/command.rs`
 
 The `register()` function defines the command structure:
 
 ```rust
 pub fn register() -> CreateCommand {
     CreateCommand::new("songs")
-        .description("Fetches the songs of an anime")
+        .description("Find anime opening and ending theme songs")
         .add_option(
             CreateCommandOption::new(
                 CommandOptionType::String,
                 "search",
-                "Anilist ID or Search term",
+                "AniList ID or anime search term",
             )
             .required(true),
         )
 }
 ```
 
-The command fetches data from MyAnimeList and Spotify via the `SongFetcher` utility at `src/commands/songs/fetcher.rs`.
+The command fetches data through `src/commands/songs/fetcher.rs`, parses MyAnimeList data in `src/models/mal_response.rs`, and enriches the combined opening and ending list through `src/utils/spotify.rs`.

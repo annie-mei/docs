@@ -6,6 +6,8 @@ icon: globe
 
 Annie Mei uses the [AniList GraphQL API](https://anilist.gitbook.io/anilist-apiv2-docs/) to fetch comprehensive anime and manga metadata. All queries are sent to the official AniList endpoint with standard GraphQL request formatting.
 
+For Discord server member overlays, Annie Mei batches linked-member `MediaList` lookups in groups of 25. It merges successful batches and keeps usable `data` from AniList partial responses, so one unavailable account or failed batch does not discard every available member status and score.
+
 ## Endpoint
 
 ```rust

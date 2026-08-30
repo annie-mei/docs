@@ -67,12 +67,12 @@ These migrations create:
 - `annie_mei.user_settings` for per-member preferences
 - `annie_mei.guild_settings` for Discord server preferences
 
-The bot still connects to a database that already contains the auth-service-owned OAuth schema.
+The bot still connects to a database that already contains the auth-service-owned `annie_auth` schema.
 
-The current OAuth schema migrations live in the companion auth service repo under `migrations/`. The auth service runs them on startup with `sqlx::migrate!("./migrations")`.
+The current OAuth schema migrations live in the companion auth service repo under `migrations/`. On startup, the auth service creates `annie_auth`, opens a migration connection with `search_path=annie_auth,public`, and runs `sqlx::migrate!("./migrations")`. Its migration history therefore lives in `annie_auth._sqlx_migrations`.
 
 <Warning>
-  Do not use the bot repo's migrations to prepare the OAuth schema. The bot migrations only create bot-owned settings tables and do not create `oauth_credentials` or `oauth_sessions`.
+  Do not use the bot repo's migrations to prepare the OAuth schema. The bot migrations only create bot-owned settings tables and do not create `annie_auth.oauth_credentials` or `annie_auth.oauth_sessions`.
 </Warning>
 
 ### Bot repo migrations
@@ -115,23 +115,24 @@ migrations/YYYYMMDDHHMMSS_<migration_name>.down.sql
 
 ### Running migrations
 
-The auth service runs migrations during startup. To run them manually from the auth service repo:
+The auth service runs migrations during startup. Starting the service is the preferred way to apply them:
 
 ```bash
 cd ../auth
-sqlx migrate run
+cargo run
 ```
 
-To inspect migration state:
+If you use SQLx CLI directly, set the auth migration search path so it reads and writes the same migration history as service startup:
 
 ```bash
 cd ../auth
-sqlx migrate info
+PGOPTIONS='-c search_path=annie_auth,public' sqlx migrate run
+PGOPTIONS='-c search_path=annie_auth,public' sqlx migrate info
 ```
 
 ## Querying with SQLx
 
-The bot reads from the auth-service-owned `oauth_credentials` table using `sqlx::query_as` with `FromRow` structs:
+The bot reads from the auth-service-owned `annie_auth.oauth_credentials` table using `sqlx::query_as` with `FromRow` structs:
 
 ```rust src/models/db/oauth_credential.rs
 #[derive(Clone, PartialEq, Eq, FromRow)]
@@ -148,7 +149,7 @@ impl OAuthCredential {
     ) -> Result<Option<OAuthCredential>, sqlx::Error> {
         sqlx::query_as::<_, OAuthCredential>(
             "SELECT discord_user_id, anilist_id, anilist_username \
-             FROM oauth_credentials WHERE discord_user_id = $1"
+             FROM annie_auth.oauth_credentials WHERE discord_user_id = $1"
         )
         .bind(user_discord_id.get().to_string())
         .fetch_optional(pool)
@@ -178,7 +179,7 @@ pub async fn get_by_discord_ids(
 
     sqlx::query_as::<_, OAuthCredential>(
         "SELECT discord_user_id, anilist_id, anilist_username \
-         FROM oauth_credentials WHERE discord_user_id = ANY($1)"
+         FROM annie_auth.oauth_credentials WHERE discord_user_id = ANY($1)"
     )
     .bind(ids)
     .fetch_all(pool)
@@ -196,7 +197,7 @@ async fn delete_user_registration_in_transaction(
     conn: &mut PgConnection,
 ) -> Result<DeletedRegistrations, sqlx::Error> {
     let oauth_credentials_deleted = sqlx::query(
-        "DELETE FROM oauth_credentials WHERE discord_user_id = $1"
+        "DELETE FROM annie_auth.oauth_credentials WHERE discord_user_id = $1"
     )
     .bind(discord_id.to_string())
     .execute(conn)
@@ -204,7 +205,7 @@ async fn delete_user_registration_in_transaction(
     .rows_affected();
 
     let oauth_sessions_deleted = sqlx::query(
-        "DELETE FROM oauth_sessions WHERE discord_user_id = $1"
+        "DELETE FROM annie_auth.oauth_sessions WHERE discord_user_id = $1"
     )
     .bind(discord_id.to_string())
     .execute(conn)
@@ -260,14 +261,14 @@ CREATE DATABASE annie_mei;
 
 ```bash
 cd ../auth
-sqlx migrate run
+PGOPTIONS='-c search_path=annie_auth,public' sqlx migrate run
 ```
 
 ### Check migration status
 
 ```bash
 cd ../auth
-sqlx migrate info
+PGOPTIONS='-c search_path=annie_auth,public' sqlx migrate info
 ```
 
 ## Troubleshooting
@@ -300,10 +301,10 @@ sqlx migrate info
 
     ```bash
     cd ../auth
-    sqlx migrate info
+    PGOPTIONS='-c search_path=annie_auth,public' sqlx migrate info
     ```
 
-    For persistent auth issues, inspect the auth service `_sqlx_migrations` table directly.
+    For persistent auth issues, inspect `annie_auth._sqlx_migrations` directly.
   </Accordion>
 
   <Accordion title="Pool exhaustion">

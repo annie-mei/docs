@@ -137,12 +137,12 @@ SENTRY_TRACES_SAMPLE_RATE=0.0
 ```
 
 <Warning>
-  The bot and auth service must point at the same PostgreSQL database. The auth service owns the OAuth tables, while the bot owns `annie_mei.user_settings` and `annie_mei.guild_settings`. The bot reads `oauth_credentials` from the shared database for `/whoami`, `/unregister`, and member status overlays.
+  The bot and auth service must point at the same PostgreSQL database. The auth service owns `annie_auth.oauth_credentials` and `annie_auth.oauth_sessions`, while the bot owns `annie_mei.user_settings` and `annie_mei.guild_settings`. The bot reads `annie_auth.oauth_credentials` for `/whoami` and member status overlays, and `/unregister` deletes matching rows from both auth-owned tables.
 </Warning>
 
 ## Where these values are used
 
-- Bot service references come from `annie-mei/src/main.rs` and `annie-mei/src/utils/oauth.rs`
+- Bot service references come from `annie-mei/src/main.rs` and `annie-mei/src/utils/oauth/mod.rs`
 - Auth service references come from `auth/src/main.rs` and `auth/src/routes/healthz.rs`
 
 ## Related pages
