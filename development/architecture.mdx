@@ -34,8 +34,10 @@ src/
 ├── commands/        # Slash command implementations
 ├── models/          # Data types, DB models, API responses
 ├── utils/           # Shared utilities, API clients, DB helpers
+├── lib.rs            # Library boundary used by integration tests
 └── main.rs          # Bot entry point and event routing
 migrations/          # Bot-owned SQLx migrations, currently settings tables
+tests/               # Discord protocol integration tests and fixtures
 ```
 
 ### Commands Directory
@@ -84,7 +86,7 @@ src/commands/
 ├── traits.rs           # Shared data source traits
 ├── unregister.rs
 ├── whoami.rs           # Shows linked AniList account for the caller
-└── mod.rs              # Module exports
+└── mod.rs              # Shared command catalog, definitions, and dispatch
 ```
 
 ### Models Directory
@@ -148,7 +150,7 @@ src/utils/
 
 ## Database access
 
-Annie Mei uses [SQLx](https://github.com/launchbadge/sqlx) for PostgreSQL queries. The bot shares a database with the auth service, reads from the auth-service-owned `oauth_credentials` table, and owns settings tables under the `annie_mei` schema.
+Annie Mei uses [SQLx](https://github.com/launchbadge/sqlx) for PostgreSQL queries. The bot shares a database with the auth service, reads from the auth-service-owned `annie_auth.oauth_credentials` table, and owns settings tables under the `annie_mei` schema.
 
 <Note>
   The bot previously used Diesel ORM. The current bot uses SQLx migrations at startup for `annie_mei.user_settings` and `annie_mei.guild_settings`. OAuth schema migrations still live in the companion auth service repo and run during auth-service startup.
@@ -171,10 +173,15 @@ The bot's execution flow starts in `src/main.rs`:
    - `interaction_create` - Routes slash commands to handlers
    - `ready` - Registers slash commands with Discord
 
-3. **Command Routing** (`main.rs`)
-   - Matches command names to handler functions
+3. **Command catalog and routing** (`commands/mod.rs`)
+   - Uses one `BotCommand` catalog for command names, Discord definitions, and runtime dispatch
    - Configures tracing spans for observability
    - Commands: `ping`, `help`, `songs`, `manga`, `anime`, `search`, `recommend`, `character`, `studio`, `register`, `unregister`, `whoami`, `settings`
+
+4. **Protocol integration tests** (`tests/discord_plumbing.rs`)
+   - Deserialize synthetic Discord interactions into Serenity models
+   - Send Serenity requests to a local mock HTTP server
+   - Verify immediate and deferred interaction response plumbing without external credentials
 
 ## Environment Configuration
 

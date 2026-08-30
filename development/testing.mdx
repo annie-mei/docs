@@ -13,7 +13,7 @@ Rust's testing framework is built into `cargo`:
 ### Run All Tests
 
 ```bash
-cargo test
+cargo test --all-features
 ```
 
 This runs:
@@ -87,15 +87,12 @@ mod tests {
     #[test]
     fn ping_response_includes_bot_description() {
         let text = handle_ping("<@999>").unwrap_message();
-        assert!(
-            text.contains("anime and manga"),
-            "response should describe what the bot does"
-        );
+        assert!(text.contains("anime, manga"));
     }
 }
 ```
 
-See `src/commands/ping.rs:50-78` for the complete implementation.
+See `src/commands/ping.rs` for the complete implementation.
 
 ### Test Patterns
 
@@ -115,19 +112,15 @@ Example from `src/commands/ping.rs`:
 /// `CommandInteraction`.
 pub fn handle_ping(user_mention: &str) -> CommandResponse {
     CommandResponse::Message(format!(
-        "Hello {user_mention}! I'm Annie Mei, a bot that helps you find anime and manga!",
+        "Hi {user_mention}! I'm Annie Mei, awake and ready to help with anime, manga, recommendations, and theme songs.",
     ))
 }
 
 // ── Serenity adapter (thin wrapper) ─────────────────────────────────────
 
 pub async fn run(ctx: &Context, interaction: &CommandInteraction) {
-    let user = &interaction.user;
-    configure_sentry_scope("Ping", user.id.get(), None);
-
-    let reply = handle_ping(&user.mention().to_string());
-
-    // Send response via Serenity...
+    configure_sentry_scope("Ping", interaction.user.id.get(), None);
+    let _ = run_with_http(&ctx.http, interaction).await;
 }
 ```
 
@@ -135,18 +128,26 @@ This separation allows testing `handle_ping()` without mocking Discord APIs.
 
 ### Integration Tests
 
-Integration tests go in the `tests/` directory:
+The `tests/discord_plumbing.rs` suite exercises Discord's HTTP protocol without Discord credentials:
 
-```rust tests/integration_test.rs
-use annie_mei::commands::ping::handle_ping;
-use annie_mei::commands::response::CommandResponse;
-
-#[test]
-fn test_ping_integration() {
-    let response = handle_ping("<@12345>");
-    assert!(response.is_message());
-}
+```bash
+cargo test --test discord_plumbing
 ```
+
+It deserializes synthetic interaction fixtures into Serenity models and directs Serenity's real HTTP client to a local mock server. The suite verifies:
+
+- `/ping` sends the expected immediate callback request
+- invalid `/anime` input defers, then edits the original interaction response
+
+Fixtures in `tests/fixtures/interactions/` use synthetic IDs and tokens. The suite does not call Discord, AniList, MyAnimeList, Spotify, the LLM provider, PostgreSQL, or Redis.
+
+The shared `BotCommand` catalog in `src/commands/mod.rs` owns command names, definitions, and dispatch. Its unit tests verify unique names and matching definitions when you run the complete test suite. `src/lib.rs` exposes command modules to integration tests while `src/main.rs` remains the executable entry point.
+
+### Live Discord smoke tests
+
+Use a private test application and Discord server only when you need to verify the real Gateway, global command registration, permissions, or Discord client rendering. Do not use production credentials or infrastructure.
+
+After starting the bot, verify `/ping`, a deferred `/anime` response, invalid `/anime` input, and one `/settings` component interaction. A member must invoke slash commands in the Discord client; bot accounts cannot invoke them on a member's behalf.
 
 ### Mocking External APIs
 
@@ -181,7 +182,7 @@ mod tests {
 }
 ```
 
-See `src/commands/anime/command.rs:136-209` for complete examples.
+See the `#[cfg(test)]` modules beside each implementation for current examples.
 
 ## Code Quality Tools
 
@@ -306,7 +307,7 @@ Before committing, run this checklist:
 
   <Step title="Run Tests">
     ```bash
-    cargo test
+    cargo test --all-features
     ```
 
     Ensure all tests pass.
@@ -328,7 +329,7 @@ Before committing, run this checklist:
   #!/bin/sh
   cargo fmt -- --check || exit 1
   cargo clippy -- -D warnings || exit 1
-  cargo test || exit 1
+  cargo test --all-features || exit 1
   ```
 
   Make it executable:
@@ -343,7 +344,7 @@ Annie Mei uses GitHub Actions for automated testing. The workflow:
 
 1. Run `cargo fmt -- --check`
 2. Run `cargo clippy -- -D warnings`
-3. Run `cargo test`
+3. Run `cargo test --all-features`
 4. Build release binary
 
 See `.github/workflows/` for workflow definitions.

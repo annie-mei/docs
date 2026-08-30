@@ -51,7 +51,7 @@ The `/search` command lets you find anime or manga using a natural-language desc
     The bot searches AniList using the parsed term. If the media type is "unknown", it tries anime first, then manga, until it finds a match.
   </Step>
   <Step title="Return results">
-    The bot shows an embed with the same details as `/anime` or `/manga`, along with an interpretation line like "I think you're thinking of the anime `One Piece`."
+    The bot shows an embed with the same details as `/anime` or `/manga`, along with a short interpretation line. Annie Mei chooses from several playful phrasings for each search.
   </Step>
 </Steps>
 
@@ -60,7 +60,7 @@ The `/search` command lets you find anime or manga using a natural-language desc
 The bot returns a rich media embed for the anime or manga it finds, plus an interpretation message telling you what it searched for.
 
 <ResponseField name="Interpretation">
-  A short message like "I think you're thinking of the anime `One Piece`." or "I think you're thinking of `Dandadan`."
+  A short, randomized message such as "I think you're thinking of the anime `One Piece`." or "Anime radar says: `One Piece`." The wording can change when you repeat the same search; the resolved title does not change because of the wording.
 </ResponseField>
 
 <ResponseField name="Anime or manga embed">

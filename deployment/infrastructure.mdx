@@ -38,7 +38,7 @@ The hosted Annie Mei bot currently uses Supabase, Upstash, and Doppler. Those pr
    - Add `?sslmode=require` if your provider requires TLS
    - Set it as `DATABASE_URL`
 
-4. **Start the bot**. The bot connects to PostgreSQL and expects the schema to already be in place.
+4. **Start the auth service, then the bot**. Each service creates its schema and runs its own SQLx migrations during startup.
 
 ### Connection Pooling
 
@@ -54,12 +54,12 @@ DATABASE_URL=postgres://user:password@db.example.com/annie_mei?sslmode=require
 
 ### Schema
 
-The auth service owns the current OAuth schema migrations. The schema is defined in:
+The auth service owns `annie_auth.oauth_credentials`, `annie_auth.oauth_sessions`, and `annie_auth._sqlx_migrations`. Its schema is defined in:
 - `auth/migrations/` (SQLx migration files in the auth service repo)
 
-The bot repo's `migrations/` directory contains bot-owned migrations for settings tables in the `annie_mei` schema. It is not used to prepare the OAuth schema.
+Auth startup creates `annie_auth`, runs migrations with `search_path=annie_auth,public`, and then closes its dedicated migration pool. The bot repo's `migrations/` directory contains bot-owned migrations and migration history in the `annie_mei` schema. It is not used to prepare the OAuth schema.
 
-The bot reads from the auth-service-owned `oauth_credentials` table. The database stores:
+The bot reads from the auth-service-owned `annie_auth.oauth_credentials` table. The database stores:
 - OAuth credentials linking Discord accounts to AniList accounts
 - AniList usernames and AniList user IDs for registered Discord accounts
 - OAuth session state for in-progress and completed registration flows
@@ -91,6 +91,8 @@ Annie Mei caches:
 - Spotify track lookups
 
 The current implementation uses one fixed cache TTL of 5 hours for cached responses.
+
+The bot reuses Redis connections through a pool capped at eight connections. It bounds pool waits and Redis connection, read, and write operations to two seconds; I/O-failed connections are discarded.
 
 ### Monitoring
 
@@ -251,6 +253,8 @@ curl http://127.0.0.1:8000/readyz
 ```
 
 Use `/healthz` for liveness and `/readyz` for dependency-aware readiness in load balancers, monitoring systems, and deployment verification. The Discord bot process does not expose an HTTP health server.
+
+The auth service's Railway configuration uses `/readyz` for deployment health checks. It binds to the platform-provided `$PORT`, allows 60 seconds for the health check, and uses an on-failure restart policy with at most five retries.
 
 ## CI/CD: GitHub Actions
 

@@ -13,7 +13,7 @@ The bot service handles Discord interactions and media lookups. The auth service
 | Service | Repo path | What it does | Main dependencies |
 |---------|-----------|--------------|-------------------|
 | Bot service | `annie-mei/` | Runs slash commands and reads AniList, MyAnimeList, Spotify, PostgreSQL, and Redis | Discord, PostgreSQL, Redis |
-| Auth service | `auth/` | Validates signed OAuth context, redirects to AniList, handles callback, stores OAuth credentials, and serves stack health/readiness endpoints | AniList OAuth, PostgreSQL |
+| Auth service | `auth/` | Validates signed OAuth context, redirects to AniList, handles callback, stores OAuth credentials in `annie_auth`, and serves stack health/readiness endpoints | AniList OAuth, PostgreSQL |
 
 ## How `/register` works
 
@@ -56,6 +56,8 @@ These values matter across both services:
 | Auth service | `127.0.0.1:8000` | `/healthz` liveness, `/readyz` database readiness |
 
 The bot process does not bind an HTTP listener; point operational health checks at the auth service.
+
+`/healthz` returns liveness with `services.database` set to `not_checked`. `/readyz` checks PostgreSQL with a two-second timeout and reports `up` or `down`.
 
 ## What happens if the auth service is missing
 

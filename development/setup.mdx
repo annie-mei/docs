@@ -14,7 +14,7 @@ This guide walks you through setting up Annie Mei for local development.
 
 Ensure you have the following installed:
 
-- **Rust 1.95 or later** - [Install via rustup](https://rustup.rs/)
+- **Rust 1.97.1 or later** - [Install via rustup](https://rustup.rs/)
 - **PostgreSQL** - For database storage
 - **Redis** - For caching API responses
 - **SQLx CLI** (optional) - For auth service schema work
@@ -149,7 +149,8 @@ OAUTH_CONTEXT_TTL_SECONDS=300
     Check that the expected tables exist:
 
     ```bash
-    psql $DATABASE_URL -c "\dt"
+    psql $DATABASE_URL -c "\dt annie_auth.*"
+    psql $DATABASE_URL -c "\dt annie_mei.*"
     ```
   </Step>
 </Steps>
