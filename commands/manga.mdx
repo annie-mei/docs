@@ -64,6 +64,8 @@ The bot returns a rich embed with the following information:
   - **Start/End Date**: Publication timeline
   - **Status**: Releasing, Finished, Not Yet Released, Cancelled, Hiatus
   - **Average Score**: Community rating (out of 100)
+
+  Serialization dates keep the precision AniList provides: year only, month and year, or a full date. Annie Mei checks the start and end dates independently and shows only valid dates. If neither date is usable, it displays `-`.
 </ResponseField>
 
 <ResponseField name="Genres & Tags">
