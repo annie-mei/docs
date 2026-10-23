@@ -6,6 +6,23 @@ icon: test-tubes
 
 Annie Mei uses Rust's built-in testing framework along with code quality tools to maintain high standards.
 
+## Run local validation
+
+From the bot repository root, run the canonical validation command:
+
+```bash
+scripts/verify.sh
+```
+
+The script stops at the first failure and runs these checks in order:
+
+1. `cargo fmt --check`
+2. `cargo test --all-features`
+3. `cargo clippy --all-targets --all-features -- -D warnings`
+4. `git diff HEAD --check`
+
+The final check catches whitespace errors in both staged and unstaged tracked changes. Fix any reported issues and rerun the script before opening a pull request.
+
 ## Running Tests
 
 Rust's testing framework is built into `cargo`:
@@ -288,48 +305,19 @@ cargo bench
 
 ## Pre-Commit Workflow
 
-Before committing, run this checklist:
+Before committing, format your code and run local validation from the bot repository root:
 
-<Steps>
-  <Step title="Format Code">
-    ```bash
-    cargo fmt
-    ```
-  </Step>
-
-  <Step title="Run Linter">
-    ```bash
-    cargo clippy
-    ```
-
-    Fix all warnings.
-  </Step>
-
-  <Step title="Run Tests">
-    ```bash
-    cargo test --all-features
-    ```
-
-    Ensure all tests pass.
-  </Step>
-
-  <Step title="Check Types">
-    ```bash
-    cargo check
-    ```
-
-    Verify no type errors.
-  </Step>
-</Steps>
+```bash
+cargo fmt
+scripts/verify.sh
+```
 
 <Tip>
   Consider using a git pre-commit hook to automate this workflow:
 
   ```bash .git/hooks/pre-commit
   #!/bin/sh
-  cargo fmt -- --check || exit 1
-  cargo clippy -- -D warnings || exit 1
-  cargo test --all-features || exit 1
+  scripts/verify.sh
   ```
 
   Make it executable:
